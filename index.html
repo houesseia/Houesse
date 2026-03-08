@@ -7,6 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0C0A08">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Houessè">
+  <!-- Puter.js — Z.ia gratuit, sans clé API -->
+  <script src="https://js.puter.com/v2/"></script>
   <style>
     :root {
       --gold:#E8A54B;--gold-bright:#F4C06A;--gold-deep:#C47D1E;--gold-dim:rgba(232,165,75,0.12);
@@ -226,6 +234,9 @@
       </div>
     </div>
     <div class="header-actions">
+      <button id="pwaInstallBtn" class="icon-btn" onclick="installPWA()" title="Installer l'app" style="display:none;background:var(--green-dim);border-color:rgba(34,197,94,.3);color:var(--success);">
+        <svg viewBox="0 0 24 24"><path d="M12 2v13M8 11l4 4 4-4M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg>
+      </button>
       <div class="ai-pill" onclick="openSettings()" id="aiPill">
         <div class="ai-dot off" id="aiDot"></div>
         <span id="aiLabel">Configurer IA</span>
@@ -518,8 +529,8 @@
       </div>
       <div style="font-size:.69rem;color:var(--fg-muted);line-height:1.65;">
         <strong style="color:var(--success)">AUTO</strong> : Houessè essaie dans cet ordre —
-        <span style="color:var(--gold)">Ollama → Groq → Gemini → Z.ia → OpenRouter → Claude → Mistral → GPT</span>.
-        Si l'un échoue il bascule seul. <strong style="color:var(--fg)">Si Groq fonctionne, il répond toujours en premier.</strong>
+        <span style="color:var(--gold)">Ollama → <strong style="color:var(--success)">Puter·Z.ia</strong> → Groq → Gemini → Z.ia → OpenRouter → Claude → Mistral → GPT</span>.
+        Si l'un échoue il bascule seul. <strong style="color:var(--fg)">Puter est gratuit et sans clé — il répond en priorité !</strong>
         Utilisez <strong style="color:var(--gold)">🧪 Tout tester</strong> pour vérifier chaque clé indépendamment.
       </div>
     </div>
@@ -528,6 +539,7 @@
     <div id="manRow" style="display:none;margin-bottom:12px;">
       <div class="stitle" style="margin-bottom:8px;">Fournisseur unique (mode Manuel)</div>
       <label class="popt" data-prov="ollama"><input type="radio" name="prov" value="ollama"><div class="prad"></div><div><div class="pnm">Ollama <span class="lb">LOCAL</span></div><div class="psub">Aucune clé</div></div></label>
+      <label class="popt" data-prov="puter"><input type="radio" name="prov" value="puter"><div class="prad"></div><div><div class="pnm">Puter · Z.ia <span class="fb">GRATUIT</span> <span style="font-size:.55rem;padding:1px 5px;border-radius:6px;background:rgba(232,165,75,.15);color:var(--gold);border:1px solid rgba(232,165,75,.25);font-weight:700;">SANS CLÉ</span></div><div class="psub">Claude 3.5 / GPT-4o · puter.com</div></div></label>
       <label class="popt" data-prov="groq"><input type="radio" name="prov" value="groq"><div class="prad"></div><div><div class="pnm">Groq <span class="fb">GRATUIT</span></div></div></label>
       <label class="popt" data-prov="gemini"><input type="radio" name="prov" value="gemini"><div class="prad"></div><div><div class="pnm">Gemini <span class="fb">GRATUIT</span></div></div></label>
       <label class="popt" data-prov="zai"><input type="radio" name="prov" value="zai"><div class="prad"></div><div><div class="pnm">Z.ia · GLM <span class="fb">GRATUIT</span></div></div></label>
@@ -539,6 +551,21 @@
 
     <!-- CLÉS API -->
     <div class="stitle" style="margin-bottom:10px;">🔑 Clés API — Plus vous en mettez, plus AUTO est robuste</div>
+
+    <!-- PUTER — Gratuit, sans clé -->
+    <div style="background:rgba(34,197,94,.07);border:1.5px solid rgba(34,197,94,.3);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;right:0;font-size:3rem;opacity:.07;line-height:1;">🪄</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:aP 2s ease-in-out infinite;"></div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--success);">Puter · Z.ia — ACTIF · Gratuit · Sans clé</div>
+      </div>
+      <div style="font-size:.75rem;color:var(--fg-muted);line-height:1.6;">
+        ✅ <strong style="color:var(--fg)">Claude 3.5 Sonnet</strong> &amp; <strong style="color:var(--fg)">GPT-4o Mini</strong> disponibles via <a href="https://puter.com" target="_blank" style="color:var(--gold);text-decoration:none;">puter.com</a><br>
+        ✅ Aucune inscription ni clé API requise<br>
+        ✅ Priorité 2 dans le routeur AUTO (après Ollama local)
+      </div>
+      <div id="puterStatus" style="margin-top:8px;font-size:.72rem;color:var(--fg-muted);">⏳ Vérification Puter.js…</div>
+    </div>
 
     <!-- Ollama -->
     <div style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:9px;">
@@ -1109,14 +1136,35 @@ Tu es proactif : tu signales opportunités et risques même si non demandés.`;
 }
 
 // ══ MODE AUTO — HOUESSÈ CHOISIT ET BASCULE SEUL ══
-// Ordre : Ollama → Groq → Gemini → Z.ia → OpenRouter → Claude → Mistral → GPT
-const AUTO_ORDER=['ollama','groq','gemini','zai','openrouter','anthropic','mistral','openai'];
-const PROV_NAMES={ollama:'Local',groq:'Groq',gemini:'Gemini',zai:'Z.ia',openrouter:'OR',anthropic:'Claude',mistral:'Mistral',openai:'GPT'};
-function hasKey(p){ return p==='ollama'||(S.ai.keys&&!!S.ai.keys[p]); }
+// Ordre : Ollama → Puter(Z.ia gratuit) → Groq → Gemini → Z.ia → OpenRouter → Claude → Mistral → GPT
+const AUTO_ORDER=['ollama','puter','groq','gemini','zai','openrouter','anthropic','mistral','openai'];
+const PROV_NAMES={ollama:'Local',puter:'Puter·Z.ia',groq:'Groq',gemini:'Gemini',zai:'Z.ia',openrouter:'OR',anthropic:'Claude',mistral:'Mistral',openai:'GPT'};
+function hasKey(p){ return p==='ollama'||p==='puter'||(S.ai.keys&&!!S.ai.keys[p]); }
 function getAvail(){ return AUTO_ORDER.filter(p=>hasKey(p)); }
 
 async function callOne(p,sys,msgs){
   const k=(S.ai.keys&&S.ai.keys[p])||'';
+  // ── PUTER — Z.ia gratuit, sans clé API ──
+  if(p==='puter'){
+    if(typeof puter==='undefined') throw new Error('Puter.js non chargé — vérifiez votre connexion internet');
+    const fullMsgs=[{role:'user',content:sys+'\n\n---\n\n'+msgs.map(m=>(m.role==='assistant'?'HOUESSÈ':'UTILISATEUR')+': '+m.content).join('\n')}];
+    try{
+      const response=await puter.ai.chat(fullMsgs,{model:'claude-3-5-sonnet'});
+      // Puter retourne soit un string, soit un objet
+      if(typeof response==='string') return response;
+      if(response&&response.message&&response.message.content) return response.message.content[0]?.text||response.message.content;
+      if(response&&response.content) return Array.isArray(response.content)?response.content[0]?.text:response.content;
+      return JSON.stringify(response);
+    }catch(e){
+      // fallback sur gpt-4o-mini si claude indisponible
+      try{
+        const r2=await puter.ai.chat(fullMsgs,{model:'gpt-4o-mini'});
+        if(typeof r2==='string') return r2;
+        if(r2&&r2.message&&r2.message.content) return r2.message.content[0]?.text||r2.message.content;
+        return JSON.stringify(r2);
+      }catch(e2){throw new Error('Puter: '+e2.message);}
+    }
+  }
   if(p==='ollama'){
     const url=(S.ai.olUrl||'http://localhost:11434').replace(/\/+$/,'')+'/v1/chat/completions';
     const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -1144,11 +1192,48 @@ async function callOne(p,sys,msgs){
       const msg=e.error?.message||r.status;
       if(r.status===400) throw new Error('Gemini: clé invalide ou modèle indisponible — '+msg);
       if(r.status===403) throw new Error('Gemini: accès refusé — vérifiez votre clé AI Studio');
-      if(r.status===429) throw new Error('Gemini: quota journalier atteint (1500 req/jour)');
+      if(r.status===429) throw new Error('Gemini: quota atteint — attendez 1 minute puis retestez (limite: 15 req/min, 1500/jour)');
       throw new Error('Gemini: '+msg);
     }
     const data=await r.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text||'(réponse vide)';
+  }
+  // OPENROUTER — essayer plusieurs modèles gratuits
+  if(p==='openrouter'){
+    const OR_MODELS=[
+      S.ai.orModel||'mistralai/mistral-7b-instruct:free',
+      'meta-llama/llama-3.2-3b-instruct:free',
+      'google/gemma-3-4b-it:free',
+      'qwen/qwen-2.5-7b-instruct:free',
+      'microsoft/phi-3-mini-128k-instruct:free'
+    ];
+    let lastErr='';
+    for(const model of OR_MODELS){
+      try{
+        const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+k,
+            'HTTP-Referer':'https://illustrious-macaron-aaada5.netlify.app',
+            'X-Title':'Houesse IA'
+          },
+          body:JSON.stringify({model,messages:[{role:'system',content:sys},...msgs],max_tokens:1500})
+        });
+        if(!r.ok){
+          const e=await r.json();
+          if(r.status===401) throw new Error('Clé OpenRouter invalide');
+          lastErr=(e.error?.message||r.status)+'';
+          continue; // essayer modèle suivant
+        }
+        const data=await r.json();
+        return data.choices[0].message.content;
+      }catch(e){
+        if(e.message.includes('invalide')) throw e;
+        lastErr=e.message;
+      }
+    }
+    throw new Error('OpenRouter: tous les modèles gratuits indisponibles — '+lastErr);
   }
   // Z.ia — essayer les deux endpoints automatiquement
   if(p==='zai'){
@@ -1175,7 +1260,7 @@ async function callOne(p,sys,msgs){
   }
     const CFG={
     groq:      {url:'https://api.groq.com/openai/v1/chat/completions',model:'llama-3.3-70b-versatile'},
-    openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',model:S.ai.orModel||'meta-llama/llama-3.3-70b-instruct:free'},
+    openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',model:S.ai.orModel||'mistralai/mistral-7b-instruct:free'},
     mistral:   {url:'https://api.mistral.ai/v1/chat/completions',model:'mistral-large-latest'},
     openai:    {url:'https://api.openai.com/v1/chat/completions',model:'gpt-4o'},
   }[p];
@@ -1689,6 +1774,15 @@ document.addEventListener('DOMContentLoaded',async()=>{
     const ok=await cloudLoad();
     if(ok)showToast('☁️ Données cloud chargées !');
   }
+  // Vérifier Puter.js
+  setTimeout(()=>{
+    const el=document.getElementById('puterStatus');
+    if(typeof puter!=='undefined'){
+      if(el){el.textContent='✅ Puter.js chargé — Z.ia gratuit opérationnel';el.style.color='var(--success)';}
+    } else {
+      if(el){el.textContent='⚠️ Puter.js non chargé — vérifiez votre connexion internet';el.style.color='var(--danger)';}
+    }
+  },2500);
   // Info si aucune clé configurée
   setTimeout(()=>{
     if(!getAvail().length) showToast('👋 Configurez vos clés IA dans les paramètres ⚙️');
@@ -1697,6 +1791,38 @@ document.addEventListener('DOMContentLoaded',async()=>{
   initHome();syvile.init();alph.renderGrid();
   updAIDot();updateCtx();initWelcome();renderMem();
 });
+
+// ══ PWA — Installation sur l'écran d'accueil ══
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  // Afficher le bouton d'installation si disponible
+  const btn=document.getElementById('pwaInstallBtn');
+  if(btn) btn.style.display='flex';
+});
+window.addEventListener('appinstalled',()=>{
+  showToast('🎉 Houessè installé sur votre écran d\'accueil !');
+  deferredInstallPrompt=null;
+  const btn=document.getElementById('pwaInstallBtn');
+  if(btn) btn.style.display='none';
+});
+function installPWA(){
+  if(!deferredInstallPrompt){showToast('📱 Pour installer: Menu Chrome → "Ajouter à l\'écran d\'accueil"');return;}
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(r=>{
+    if(r.outcome==='accepted') showToast('✅ Installation en cours…');
+    deferredInstallPrompt=null;
+  });
+}
+// Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(()=>{
+      console.log('SW Houessè enregistré');
+    }).catch(e=>console.warn('SW:', e));
+  });
+}
 </script>
 </body>
 </html>

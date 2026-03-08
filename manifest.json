@@ -1,0 +1,35 @@
+{
+  "name": "Houessè · Gardien du Gbékoun Universel",
+  "short_name": "Houessè",
+  "description": "Assistant IA personnel · Alphabet Gbékoun · Z.ia gratuit via Puter",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0C0A08",
+  "theme_color": "#0C0A08",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230C0A08'/><circle cx='96' cy='96' r='70' fill='none' stroke='%23E8A54B' stroke-width='6'/><text x='96' y='116' text-anchor='middle' font-size='72' fill='%23E8A54B'>☀</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230C0A08'/><circle cx='256' cy='256' r='190' fill='none' stroke='%23E8A54B' stroke-width='14'/><text x='256' y='316' text-anchor='middle' font-size='196' fill='%23E8A54B'>☀</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Chat Houessè",
+      "short_name": "Chat",
+      "description": "Ouvrir le chat IA",
+      "url": "index.html#chat",
+      "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='16' fill='%23E8A54B'/><text x='48' y='68' text-anchor='middle' font-size='52' fill='%230C0A08'>💬</text></svg>", "sizes": "96x96"}]
+    }
+  ]
+}
