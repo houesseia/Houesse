@@ -7,6 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0C0A08">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Houessè">
+  <!-- Puter.js — Z.ia gratuit, sans clé API -->
+  <script src="https://js.puter.com/v2/"></script>
   <style>
     :root {
       --gold:#E8A54B;--gold-bright:#F4C06A;--gold-deep:#C47D1E;--gold-dim:rgba(232,165,75,0.12);
@@ -226,6 +234,9 @@
       </div>
     </div>
     <div class="header-actions">
+      <button id="pwaInstallBtn" class="icon-btn" onclick="installPWA()" title="Installer l'app" style="display:none;background:var(--green-dim);border-color:rgba(34,197,94,.3);color:var(--success);">
+        <svg viewBox="0 0 24 24"><path d="M12 2v13M8 11l4 4 4-4M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg>
+      </button>
       <div class="ai-pill" onclick="openSettings()" id="aiPill">
         <div class="ai-dot off" id="aiDot"></div>
         <span id="aiLabel">Configurer IA</span>
@@ -619,10 +630,9 @@
         </button>
       </div>
       <div style="font-size:.69rem;color:var(--fg-muted);line-height:1.65;">
-        <strong style="color:var(--success)">AUTO</strong> : Houessè essaie dans cet ordre —
-        <span style="color:var(--gold)">Ollama → Groq → Gemini → Z.ia → OpenRouter → Claude → Mistral → GPT</span>.
-        Si l'un échoue il bascule seul. <strong style="color:var(--fg)">Si Groq fonctionne, il répond toujours en premier.</strong>
-        Utilisez <strong style="color:var(--gold)">🧪 Tout tester</strong> pour vérifier chaque clé indépendamment.
+        <strong style="color:var(--success)">AUTO INTELLIGENT</strong> : Houessè choisit le cerveau selon la <strong style="color:var(--fg)">nature de la tâche</strong> —
+        <span style="color:var(--gold)">Analyse profonde → Claude · Code → Groq · Créatif/Langue → Puter·Z.ia · Journalisme → Claude · Confidentiel → Ollama</span>.
+        Puter·Z.ia est actif sans clé. Ajoutez d'autres clés pour enrichir le choix.
       </div>
     </div>
 
@@ -630,9 +640,8 @@
     <div id="manRow" style="display:none;margin-bottom:12px;">
       <div class="stitle" style="margin-bottom:8px;">Fournisseur unique (mode Manuel)</div>
       <label class="popt" data-prov="ollama"><input type="radio" name="prov" value="ollama"><div class="prad"></div><div><div class="pnm">Ollama <span class="lb">LOCAL</span></div><div class="psub">Aucune clé</div></div></label>
+      <label class="popt" data-prov="puter"><input type="radio" name="prov" value="puter"><div class="prad"></div><div><div class="pnm">Puter · Z.ia <span class="fb">GRATUIT</span> <span style="font-size:.55rem;padding:1px 5px;border-radius:6px;background:rgba(232,165,75,.15);color:var(--gold);border:1px solid rgba(232,165,75,.25);font-weight:700;">SANS CLÉ</span></div><div class="psub">Claude 3.5 / GPT-4o · puter.com</div></div></label>
       <label class="popt" data-prov="groq"><input type="radio" name="prov" value="groq"><div class="prad"></div><div><div class="pnm">Groq <span class="fb">GRATUIT</span></div></div></label>
-      <label class="popt" data-prov="gemini"><input type="radio" name="prov" value="gemini"><div class="prad"></div><div><div class="pnm">Gemini <span class="fb">GRATUIT</span></div></div></label>
-      <label class="popt" data-prov="zai"><input type="radio" name="prov" value="zai"><div class="prad"></div><div><div class="pnm">Z.ia · GLM <span class="fb">GRATUIT</span></div></div></label>
       <label class="popt" data-prov="openrouter"><input type="radio" name="prov" value="openrouter"><div class="prad"></div><div><div class="pnm">OpenRouter <span class="fb">FREE</span></div></div></label>
       <label class="popt sel" data-prov="anthropic"><input type="radio" name="prov" value="anthropic" checked><div class="prad"></div><div><div class="pnm">Claude <span class="pb">PAYANT</span></div></div></label>
       <label class="popt" data-prov="mistral"><input type="radio" name="prov" value="mistral"><div class="prad"></div><div><div class="pnm">Mistral <span class="pb">PAYANT</span></div></div></label>
@@ -640,7 +649,20 @@
     </div>
 
     <!-- CLÉS API -->
-    <div class="stitle" style="margin-bottom:10px;">🔑 Clés API — Plus vous en mettez, plus AUTO est robuste</div>
+    <div class="stitle" style="margin-bottom:10px;">🔑 Clés API — Plus vous en mettez, plus le routeur est précis</div>
+
+    <!-- PUTER — Gratuit, sans clé -->
+    <div style="background:rgba(34,197,94,.07);border:1.5px solid rgba(34,197,94,.3);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:aP 2s ease-in-out infinite;"></div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--success);">Puter · Z.ia — ACTIF · Gratuit · Sans clé</div>
+      </div>
+      <div style="font-size:.75rem;color:var(--fg-muted);line-height:1.6;">
+        ✅ <strong style="color:var(--fg)">Claude 3.5 Sonnet</strong> &amp; <strong style="color:var(--fg)">GPT-4o Mini</strong> via <a href="https://puter.com" target="_blank" style="color:var(--gold);text-decoration:none;">puter.com</a> — aucune clé requise<br>
+        ✅ Utilisé pour : créativité, langues africaines, Gbékoun, réponses rapides
+      </div>
+      <div id="puterStatus" style="margin-top:8px;font-size:.72rem;color:var(--fg-muted);">⏳ Vérification Puter.js…</div>
+    </div>
 
     <!-- Ollama -->
     <div style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:9px;">
@@ -660,16 +682,6 @@
       <div style="display:flex;gap:6px;align-items:center;">
         <input type="password" id="k_groq" class="inp" style="font-size:.81rem;padding:9px 12px;flex:1;" placeholder="gsk_…">
         <button onclick="testKey('groq')" id="test_groq" style="flex-shrink:0;padding:9px 12px;background:var(--bg-elevated);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--fg-muted);font-family:inherit;font-size:.75rem;cursor:pointer;white-space:nowrap;transition:all .2s;" title="Tester cette clé">Tester</button>
-      </div></div>
-    <div style="margin-bottom:8px;"><label class="flbl" style="font-size:.68rem;">🟢 Google Gemini <span class="fb">GRATUIT</span> · 1500 req/jour · aistudio.google.com</label>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input type="password" id="k_gemini" class="inp" style="font-size:.81rem;padding:9px 12px;flex:1;" placeholder="AIza…">
-        <button onclick="testKey('gemini')" id="test_gemini" style="flex-shrink:0;padding:9px 12px;background:var(--bg-elevated);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--fg-muted);font-family:inherit;font-size:.75rem;cursor:pointer;white-space:nowrap;transition:all .2s;" title="Tester cette clé">Tester</button>
-      </div></div>
-    <div style="margin-bottom:8px;"><label class="flbl" style="font-size:.68rem;">🟢 Z.ia · GLM <span class="fb">GRATUIT</span> · open.bigmodel.cn</label>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input type="password" id="k_zai" class="inp" style="font-size:.81rem;padding:9px 12px;flex:1;" placeholder="Clé Z.ia…">
-        <button onclick="testKey('zai')" id="test_zai" style="flex-shrink:0;padding:9px 12px;background:var(--bg-elevated);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--fg-muted);font-family:inherit;font-size:.75rem;cursor:pointer;white-space:nowrap;transition:all .2s;" title="Tester cette clé">Tester</button>
       </div></div>
     <div style="margin-bottom:8px;"><label class="flbl" style="font-size:.68rem;">🟢 OpenRouter <span class="fb">MODÈLES FREE</span> · openrouter.ai</label>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px;">
@@ -804,7 +816,7 @@ const S = {
     sig_terrain:'Tognon Doudédji FATCHINA, [Ville], Radio Bénin.',
     formats:{court:'1m30', moyen:'2m00-2m30', long:'3m00', dossier:'6m30'}
   },
-  ai:{mode:'auto',provider:'groq',keys:{groq:'',gemini:'',zai:'',openrouter:'',anthropic:'',mistral:'',openai:''},orModel:'meta-llama/llama-3.3-70b-instruct:free',olUrl:'http://localhost:11434',olModel:'llama3.2',injMem:true,injSy:true,injAl:true,lastUsed:''},
+  ai:{mode:'auto',provider:'groq',keys:{groq:'',openrouter:'',anthropic:'',mistral:'',openai:''},orModel:'meta-llama/llama-3.3-70b-instruct:free',olUrl:'http://localhost:11434',olModel:'llama3.2',injMem:true,injSy:true,injAl:true,lastUsed:''},
   cloud:{enabled:true,url:'https://ugdnutxhibammyxzcuxt.supabase.co',key:'sb_publishable_q9_a35r5-g49pXIJwGD92A_RxGsQnbr',lastSync:''},
   mem:[],
   memLong:[],
@@ -895,7 +907,7 @@ function updTagline(){
 // ══ PARAMÈTRES ══
 function openSettings(){
   try{
-    if(S.ai.keys)['groq','gemini','zai','openrouter','anthropic','mistral','openai'].forEach(p=>{
+    if(S.ai.keys)['groq','openrouter','anthropic','mistral','openai'].forEach(p=>{
       const el=document.getElementById('k_'+p);if(el)el.value=S.ai.keys[p]||'';
     });
     const oUrl=document.getElementById('ollamaUrl');if(oUrl)oUrl.value=S.ai.olUrl||'http://localhost:11434';
@@ -929,8 +941,8 @@ function setMode(m){
 function updProvUI(p){const o=document.getElementById('orOpts');if(o)o.style.display=p==='openrouter'?'block':'none';}
 function saveSettings(){
   try{
-    if(!S.ai.keys)S.ai.keys={groq:'',gemini:'',zai:'',openrouter:'',anthropic:'',mistral:'',openai:''};
-    ['groq','gemini','zai','openrouter','anthropic','mistral','openai'].forEach(p=>{
+    if(!S.ai.keys)S.ai.keys={groq:'',openrouter:'',anthropic:'',mistral:'',openai:''};
+    ['groq','openrouter','anthropic','mistral','openai'].forEach(p=>{
       const el=document.getElementById('k_'+p);if(el)S.ai.keys[p]=el.value.trim();
     });
     const oUrl=document.getElementById('ollamaUrl');if(oUrl)S.ai.olUrl=oUrl.value.trim();
@@ -978,18 +990,24 @@ document.querySelectorAll('.popt').forEach(o=>o.addEventListener('click',()=>{
 // le meilleur modèle automatiquement
 // ══════════════════════════════════════
 const TASK_PROFILES = {
+  // Analyse profonde, philosophie, stratégie → Claude (meilleur raisonnement)
+  deep:     {p:['anthropic','openrouter','puter','groq'],           kw:[/analys|explique|réfléch|philosophi|stratégi|comparaison|nuanc|complex|pourquoi/i]},
   // Code & technique → Groq (vitesse + précision)
-  code:     {p:['groq','openrouter','anthropic','gemini'],    kw:[/code|bug|erreur|script|python|javascript|function|debug|html|css|programme/i]},
-  // Créatif & long → Gemini (contexte long, créativité)
-  creative: {p:['gemini','openrouter','groq','zai'],          kw:[/poème|chanson|histoire|roman|créati|rédige|rapport|article|essai|conte/i]},
-  // Multilingue → Z.ia
-  language: {p:['zai','gemini','groq','openrouter'],          kw:[/traduis|traduction|langue|yoruba|fon|wolof|arabe|chinois|japonais|swahili/i]},
+  code:     {p:['groq','openrouter','anthropic','puter'],           kw:[/code|bug|erreur|script|python|javascript|function|debug|html|css|programme/i]},
+  // Créatif & long → Puter·Z.ia (créativité, contexte)
+  creative: {p:['puter','openrouter','groq','anthropic'],           kw:[/poème|chanson|histoire|roman|créati|rédige|rapport|article|essai|conte/i]},
+  // Multilingue → Puter·Z.ia (modèles multilingues)
+  language: {p:['puter','groq','openrouter'],                       kw:[/traduis|traduction|langue|yoruba|fon|wolof|arabe|chinois|japonais|swahili/i]},
   // Gbékoun → Groq (rapide pour pédagogie)
-  gbékoun:  {p:['groq','gemini','zai','openrouter'],          kw:[/gbékoun|signe|alphabet|leçon|translittère|phonème/i]},
+  gbékoun:  {p:['groq','puter','openrouter'],                       kw:[/gbékoun|signe|alphabet|leçon|translittère|phonème/i]},
+  // Réponse rapide → Groq (latence minimale)
+  fast:     {p:['groq','puter','openrouter'],                       kw:[/vite|rapide|résumé|courte?ment|en bref|tl;dr/i]},
+  // Journalisme BIC → Claude (qualité rédactionnelle maximale)
+  journa:   {p:['anthropic','openrouter','puter','groq'],           kw:[/papier|enrobé|conducteur|reportage|antenne|bic|rédige.*style|journalis/i]},
   // Confidentiel → Ollama (local, 0 fuite)
-  private:  {p:['ollama','groq','gemini','zai','openrouter'], kw:[/confidentiel|secret|privé|personnel|intime/i]},
-  // Rapide → Groq par défaut
-  default:  {p:['groq','gemini','zai','openrouter','anthropic','mistral','openai'], kw:[]}
+  private:  {p:['ollama','groq','puter','openrouter'],              kw:[/confidentiel|secret|privé|personnel|intime/i]},
+  // Défaut équilibré
+  default:  {p:['groq','puter','openrouter','anthropic','mistral','openai'], kw:[]}
 };
 
 function detectTask(msg){
@@ -1019,7 +1037,7 @@ async function callIASmart(sys, msgs, userMsg=''){
 
   if(!avail.length) throw new Error('Aucun fournisseur configuré.');
 
-  const taskLabels = {code:'💻',creative:'✍️',language:'🌍',gbékoun:'𐍈',private:'🔒',default:'⚡'};
+  const taskLabels = {deep:'🧠',code:'💻',creative:'✍️',language:'🌍',gbékoun:'𐍈',fast:'⚡',journa:'🎙️',private:'🔒',default:'⚡'};
   const errs = [];
   for(const p of avail){
     try{
@@ -1245,9 +1263,9 @@ Formats radio: court=${S.user.formats.court} | moyen=${S.user.formats.moyen} | l
 
 // ══ MODE AUTO — HOUESSÈ CHOISIT ET BASCULE SEUL ══
 // Ordre : Ollama → Groq → Gemini → Z.ia → OpenRouter → Claude → Mistral → GPT
-const AUTO_ORDER=['ollama','groq','gemini','zai','openrouter','anthropic','mistral','openai'];
-const PROV_NAMES={ollama:'Local',groq:'Groq',gemini:'Gemini',zai:'Z.ia',openrouter:'OR',anthropic:'Claude',mistral:'Mistral',openai:'GPT'};
-function hasKey(p){ return p==='ollama'||(S.ai.keys&&!!S.ai.keys[p]); }
+const AUTO_ORDER=['ollama','puter','groq','openrouter','anthropic','mistral','openai'];
+const PROV_NAMES={ollama:'Local',puter:'Puter·Z.ia',groq:'Groq',openrouter:'OR',anthropic:'Claude',mistral:'Mistral',openai:'GPT'};
+function hasKey(p){ return p==='ollama'||p==='puter'||(S.ai.keys&&!!S.ai.keys[p]); }
 function getAvail(){ return AUTO_ORDER.filter(p=>hasKey(p)); }
 
 async function callOne(p,sys,msgs){
@@ -1263,27 +1281,28 @@ async function callOne(p,sys,msgs){
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,system:sys,messages:msgs})});
-    if(!r.ok){const e=await r.json();throw new Error('Anthropic: '+(e.error?.message||r.status));}
+    if(!r.ok){const e=await r.json();throw new Error('Anthropic: '+((e.error&&e.error.message)||r.status));}
     return (await r.json()).content[0].text;
   }
-  // GEMINI — format natif AI Studio (clé gratuite)
-  if(p==='gemini'){
-    const allMsgs=[{role:'user',parts:[{text:sys+'\n\n'+msgs.map(m=>m.role+': '+m.content).join('\n')}]}];
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+k,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:allMsgs,generationConfig:{maxOutputTokens:1500,temperature:0.7}})
-    });
-    if(!r.ok){
-      const e=await r.json();
-      const msg=e.error?.message||r.status;
-      if(r.status===400) throw new Error('Gemini: clé invalide ou modèle indisponible — '+msg);
-      if(r.status===403) throw new Error('Gemini: accès refusé — vérifiez votre clé AI Studio');
-      if(r.status===429) throw new Error('Gemini: quota atteint — attendez 1 minute puis retestez (limite: 15 req/min, 1500/jour)');
-      throw new Error('Gemini: '+msg);
+  // PUTER — Z.ia gratuit, sans clé API. Puter = Z.ia (même chose, pas de doublon)
+  if(p==='puter'){
+    if(typeof puter==='undefined') throw new Error('Puter.js non chargé — vérifiez votre connexion internet');
+    const fullMsgs=[{role:'user',content:sys+'\n\n---\n\n'+msgs.map(m=>(m.role==='assistant'?'HOUESSÈ':'UTILISATEUR')+': '+m.content).join('\n')}];
+    try{
+      const response=await puter.ai.chat(fullMsgs,{model:'claude-3-5-sonnet'});
+      if(typeof response==='string') return response;
+      if(response&&response.message&&response.message.content) return (response.message.content[0]&&response.message.content[0].text)||response.message.content;
+      if(response&&response.content) return Array.isArray(response.content)?((response.content[0]&&response.content[0].text)||''):response.content;
+      return JSON.stringify(response);
+    }catch(e){
+      // Fallback gpt-4o-mini si claude indisponible
+      try{
+        const r2=await puter.ai.chat(fullMsgs,{model:'gpt-4o-mini'});
+        if(typeof r2==='string') return r2;
+        if(r2&&r2.message&&r2.message.content) return (r2.message.content[0]&&r2.message.content[0].text)||r2.message.content;
+        return JSON.stringify(r2);
+      }catch(e2){throw new Error('Puter·Z.ia: '+e2.message);}
     }
-    const data=await r.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text||'(réponse vide)';
   }
   // OPENROUTER — essayer plusieurs modèles gratuits
   if(p==='openrouter'){
@@ -1310,7 +1329,7 @@ async function callOne(p,sys,msgs){
         if(!r.ok){
           const e=await r.json();
           if(r.status===401) throw new Error('Clé OpenRouter invalide');
-          lastErr=(e.error?.message||r.status)+'';
+          lastErr=((e.error&&e.error.message)||r.status)+'';
           continue; // essayer modèle suivant
         }
         const data=await r.json();
@@ -1322,30 +1341,7 @@ async function callOne(p,sys,msgs){
     }
     throw new Error('OpenRouter: tous les modèles gratuits indisponibles — '+lastErr);
   }
-  // Z.ia — essayer les deux endpoints automatiquement
-  if(p==='zai'){
-    const ZAI_ENDPOINTS=[
-      'https://open.bigmodel.cn/api/paas/v4/chat/completions',
-      'https://api.z.ai/api/paas/v4/chat/completions'
-    ];
-    let lastErr='';
-    for(const zUrl of ZAI_ENDPOINTS){
-      try{
-        const r=await fetch(zUrl,{method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},
-          body:JSON.stringify({model:'glm-4-flash',messages:[{role:'system',content:sys},...msgs],max_tokens:1500})});
-        if(!r.ok){
-          const e=await r.json();
-          if(r.status===401||r.status===403) throw new Error('Clé Z.ia invalide — créez un compte sur bigmodel.cn');
-          if(r.status===429) throw new Error('Quota Z.ia atteint');
-          lastErr=(e.error?.message||r.status)+'';continue;
-        }
-        return (await r.json()).choices[0].message.content;
-      }catch(e){lastErr=e.message;}
-    }
-    throw new Error('Z.ia: '+lastErr);
-  }
-    const CFG={
+  const CFG={
     groq:      {url:'https://api.groq.com/openai/v1/chat/completions',model:'llama-3.3-70b-versatile'},
     openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',model:S.ai.orModel||'mistralai/mistral-7b-instruct:free'},
     mistral:   {url:'https://api.mistral.ai/v1/chat/completions',model:'mistral-large-latest'},
@@ -1358,7 +1354,7 @@ async function callOne(p,sys,msgs){
     body:JSON.stringify({model:CFG.model,messages:[{role:'system',content:sys},...msgs],max_tokens:1500})});
   if(!r.ok){
     let errMsg=r.status;
-    try{const e=await r.json();errMsg=e.error?.message||e.message||r.status;}catch(e){}
+    try{const e=await r.json();errMsg=(e.error&&e.error.message)||e.message||r.status;}catch(e){}
     if(r.status===401||r.status===403) throw new Error(p+': Clé invalide — vérifiez votre clé dans les paramètres');
     if(r.status===429) throw new Error(p+': Quota atteint — réessayez demain ou changez de clé');
     if(r.status===404) throw new Error(p+': Modèle introuvable — '+errMsg);
@@ -1533,10 +1529,10 @@ function renderMem(f=''){
 function openMemModal(mem=null){
   S.editMemId=mem?mem.id:null;
   document.getElementById('memMT').textContent=mem?'Modifier':'Nouvelle mémoire';
-  document.getElementById('mT').value=mem?.title||'';
-  document.getElementById('mC').value=mem?.cat||'projet';
-  document.getElementById('mCt').value=mem?.content||'';
-  document.getElementById('mTg').value=mem?.tags?.join(', ')||'';
+  document.getElementById('mT').value=(mem&&mem.title)||'';
+  document.getElementById('mC').value=(mem&&mem.cat)||'projet';
+  document.getElementById('mCt').value=(mem&&mem.content)||'';
+  document.getElementById('mTg').value=(mem&&mem.tags&&mem.tags.join(', '))||'';
   openModal('modalMem');setTimeout(()=>document.getElementById('mT').focus(),200);
 }
 function saveMem(){
@@ -1563,7 +1559,7 @@ function editMem(){const m=S.mem.find(x=>x.id===S.curMemId);if(!m)return;closeMo
 const alph={
   renderGrid(){
     const g=document.getElementById('glyphGrid'),tot=GBÉKOUN.length,lr=S.alph.learned.length;
-    g.innerHTML=GBÉKOUN.map(x=>`<div class="gc ${S.alph.learned.includes(x.id)?'lrn':''} ${curGlyph?.id===x.id?'act':''}" onclick="alph.showG('${x.id}')"><div class="gch">${x.ch}</div><div class="gsnd">${x.snd}</div><div class="gnm">${x.nm}</div></div>`).join('');
+    g.innerHTML=GBÉKOUN.map(x=>`<div class="gc ${S.alph.learned.includes(x.id)?'lrn':''} ${(curGlyph&&curGlyph.id===x.id)?'act':''}" onclick="alph.showG('${x.id}')"><div class="gch">${x.ch}</div><div class="gsnd">${x.snd}</div><div class="gnm">${x.nm}</div></div>`).join('');
     document.getElementById('alphProg').style.width=(lr/tot*100)+'%';
     document.getElementById('alphLbl').textContent=`${lr} / ${tot} signes maîtrisés`;
   },
@@ -1719,6 +1715,25 @@ document.querySelectorAll('.nav-tab[data-module]').forEach(t=>t.addEventListener
 async function testKey(p){
   const btn = document.getElementById('test_'+p);
   const keyEl = document.getElementById('k_'+p);
+  if(!btn && p!=='puter') return;
+
+  // Puter — test direct sans clé
+  if(p==='puter'){
+    const pb=document.getElementById('puterStatus');
+    if(typeof puter==='undefined'){
+      if(pb){pb.textContent='❌ Puter.js non chargé — vérifiez internet';pb.style.color='var(--danger)';}
+      showToast('❌ Puter.js non chargé');return;
+    }
+    try{
+      await puter.ai.chat([{role:'user',content:'OK'}],{model:'gpt-4o-mini'});
+      if(pb){pb.textContent='✅ Puter·Z.ia opérationnel !';pb.style.color='var(--success)';}
+      showToast('✅ Puter·Z.ia fonctionne !');
+    }catch(e){
+      if(pb){pb.textContent='⚠️ Puter connecté mais requête refusée (connexion Puter requise)';pb.style.color='var(--gold)';}
+      showToast('⚠️ Puter: '+e.message.substring(0,50));
+    }
+    return;
+  }
   if(!btn) return;
 
   // Lire la clé depuis le champ (pas encore sauvegardé)
@@ -1785,12 +1800,12 @@ function resetTestBtn(btn){
 
 
 async function testAllKeys(){
-  const providers = ['ollama','groq','gemini','zai','openrouter','anthropic','mistral','openai'];
+  const providers = ['ollama','puter','groq','openrouter','anthropic','mistral','openai'];
   showToast('🧪 Test de toutes les clés en cours…');
   for(const p of providers){
     const el = document.getElementById('k_'+p);
-    const hasKey = p==='ollama' || (el && el.value.trim()) || (S.ai.keys&&S.ai.keys[p]);
-    if(hasKey) await testKey(p);
+    const hasK = p==='ollama'||p==='puter' || (el && el.value.trim()) || (S.ai.keys&&S.ai.keys[p]);
+    if(hasK) await testKey(p);
   }
   showToast('✅ Tests terminés — vérifiez les boutons');
 }
@@ -2039,8 +2054,7 @@ function compilerPolice(){
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200">
   <title>Police Gbékoun — Alphabet Universel de Houessè</title>
   <desc>Générée par Houessè v8 — ${signes.length}/20 signes</desc>
-  ${signes.map(([s,svg],i)=>`<g transform="translate(${i*50},0)" id="glyph-${s}">${svg.replace(/<\/?svg[^>]*>/gi,'')}</g>`).join('
-  ')}
+  ${signes.map(([s,svg],i)=>`<g transform="translate(${i*50},0)" id="glyph-${s}">${svg.replace(/<\/?svg[^>]*>/gi,'')}</g>`).join('\n  ')}
 </svg>`;
 
   const blob = new Blob([svgFont],{type:'image/svg+xml'});
@@ -2057,14 +2071,43 @@ document.addEventListener('DOMContentLoaded',async()=>{
     const ok=await cloudLoad();
     if(ok)showToast('☁️ Données cloud chargées !');
   }
-  // Info si aucune clé configurée
+  // Vérifier Puter.js au démarrage
+  setTimeout(()=>{
+    const el=document.getElementById('puterStatus');
+    if(typeof puter!=='undefined'){
+      if(el){el.textContent='✅ Puter.js chargé — Z.ia gratuit opérationnel';el.style.color='var(--success)';}
+    } else {
+      if(el){el.textContent='⚠️ Puter.js non chargé — connexion internet requise';el.style.color='var(--danger)';}
+    }
+  },2500);
+  // Info démarrage
   setTimeout(()=>{
     if(!getAvail().length) showToast('👋 Configurez vos clés IA dans les paramètres ⚙️');
-    else if(getAvail().length>0&&!S.ai.lastUsed) showToast('💡 Note: clés IA = locales. À reconfigurer sur chaque appareil.');
+    else showToast('✅ Houessè prêt · Routeur IA intelligent actif');
   },2000);
   initHome();syvile.init();alph.renderGrid();
   updAIDot();updateCtx();initWelcome();renderMem();
 });
+
+// ══ PWA ══
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredInstallPrompt=e;
+  const btn=document.getElementById('pwaInstallBtn');if(btn)btn.style.display='flex';
+});
+window.addEventListener('appinstalled',()=>{
+  showToast('🎉 Houessè installé sur votre écran d\'accueil !');
+  deferredInstallPrompt=null;
+  const btn=document.getElementById('pwaInstallBtn');if(btn)btn.style.display='none';
+});
+function installPWA(){
+  if(!deferredInstallPrompt){showToast('📱 Menu Chrome → "Ajouter à l\'écran d\'accueil"');return;}
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(r=>{if(r.outcome==='accepted')showToast('✅ Installation en cours…');deferredInstallPrompt=null;});
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+}
 </script>
 </body>
 </html>
