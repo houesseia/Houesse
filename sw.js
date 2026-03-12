@@ -1,76 +1,99 @@
-// Houessè Service Worker — PWA Cache v1.0
-const CACHE_NAME = 'houesse-v1';
-const ASSETS_TO_CACHE = [
-  'index.html',
+// Houessè Service Worker — PWA Cache v8
+// Network-First pour index.html → mise à jour immédiate à chaque déploiement
+// Cache-First pour ressources statiques (fonts, icons)
+
+const CACHE_NAME = 'houesse-v8';
+const STATIC_ASSETS = [
   'manifest.json',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap',
-  'https://js.puter.com/v2/'
+  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap'
 ];
 
-// Installation — mise en cache des ressources statiques
+// ══ INSTALLATION ══
 self.addEventListener('install', event => {
-  console.log('[SW Houessè] Installation…');
+  console.log('[SW Houesse v8] Installation...');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll([
-        'index.html',
-        'manifest.json'
-      ]).catch(err => console.warn('[SW] Cache partiel:', err));
+      return cache.addAll(STATIC_ASSETS).catch(err => {
+        console.warn('[SW] Cache partiel:', err);
+      });
     })
   );
   self.skipWaiting();
 });
 
-// Activation — nettoyage des anciens caches
+// ══ ACTIVATION — suppression des anciens caches ══
 self.addEventListener('activate', event => {
-  console.log('[SW Houessè] Activation…');
+  console.log('[SW Houesse v8] Activation...');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME).map(key => {
+          console.log('[SW] Suppression ancien cache:', key);
+          return caches.delete(key);
+        })
       )
-    )
+    ).then(() => self.clients.claim())
+    .then(() => {
+      // Notifier tous les onglets ouverts
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+        });
+      });
+    })
   );
-  self.clients.claim();
 });
 
-// Stratégie : Network-first pour les API, Cache-first pour les ressources statiques
+// ══ FETCH ══
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Ne pas intercepter les appels API (IA, Supabase, Puter)
-  if (
-    url.hostname.includes('anthropic.com') ||
-    url.hostname.includes('groq.com') ||
-    url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('bigmodel.cn') ||
-    url.hostname.includes('z.ai') ||
-    url.hostname.includes('openrouter.ai') ||
-    url.hostname.includes('openai.com') ||
-    url.hostname.includes('mistral.ai') ||
-    url.hostname.includes('supabase.co') ||
-    url.hostname.includes('puter.com')
-  ) {
-    return; // laisser passer sans cache
+  // Ne jamais intercepter les appels API
+  const isAPI = [
+    'anthropic.com','groq.com','openrouter.ai','openai.com',
+    'mistral.ai','supabase.co','puter.com','elevenlabs.io'
+  ].some(h => url.hostname.includes(h));
+  if (isAPI) return;
+
+  // Network-First pour index.html
+  const isHTML = (
+    event.request.destination === 'document' ||
+    url.pathname === '/' ||
+    url.pathname.endsWith('/Houesse') ||
+    url.pathname.endsWith('index.html')
+  );
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, response.clone());
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          console.log('[SW] Hors ligne - cache pour:', url.pathname);
+          return caches.match(event.request) || caches.match('index.html');
+        })
+    );
+    return;
   }
 
-  // Stratégie Cache-First pour ressources statiques
+  // Cache-First pour les ressources statiques
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Mettre en cache les nouvelles ressources statiques
         if (response && response.status === 200 && event.request.method === 'GET') {
-          const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
+            cache.put(event.request, response.clone());
           });
         }
         return response;
       }).catch(() => {
-        // Fallback hors ligne : retourner index.html
         if (event.request.destination === 'document') {
           return caches.match('index.html');
         }
@@ -79,7 +102,10 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Message de l'app
+// ══ MESSAGES ══
 self.addEventListener('message', event => {
   if (event.data === 'skipWaiting') self.skipWaiting();
+  if (event.data === 'getVersion') {
+    event.source.postMessage({ type: 'SW_VERSION', version: CACHE_NAME });
+  }
 });

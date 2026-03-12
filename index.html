@@ -2128,7 +2128,30 @@ function installPWA(){
   deferredInstallPrompt.userChoice.then(r=>{if(r.outcome==='accepted')showToast('✅ Installation en cours…');deferredInstallPrompt=null;});
 }
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // Ecouter les mises à jour du Service Worker
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if(newSW) {
+          newSW.addEventListener('statechange', () => {
+            if(newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              // Nouvelle version disponible - recharger automatiquement
+              showToast('Mise à jour disponible - rechargement...');
+              setTimeout(() => window.location.reload(), 1500);
+            }
+          });
+        }
+      });
+    }).catch(()=>{});
+    // Ecouter les messages du SW
+    navigator.serviceWorker.addEventListener('message', event => {
+      if(event.data && event.data.type === 'SW_UPDATED') {
+        showToast('Houesse mis a jour vers ' + event.data.version + ' !');
+        setTimeout(() => window.location.reload(), 2000);
+      }
+    });
+  });
 }
 </script>
 </body>
