@@ -2137,11 +2137,14 @@ const REGLES_MEDIA = {
 
 const INSTRUCTIONS_GENRE = {
   // RADIO
-  papier: (duree, sig, lieu) => `Rédige un PAPIER RADIO de ${duree}.
-Structure exacte:
-[LANCEMENT — journaliste studio, 2-3 phrases max, informatif, direct]
-[PAPIER — corps du reportage avec AMBIANCES intégrées]
-[SIGNATURE: ${sig}]`,
+  papier: function(duree, sig, lieu){ return 'Redige un PAPIER RADIO de '+duree+'.'
+    +' Structure EXACTE a respecter:'
+    +' 1. LANCEMENT (Presentateur/Presentatrice studio) - 2-3 phrases, pose lieu+evenement+contexte+annonce reporter.'
+    +' 2. CORPS - alternance Voix Off (3-4 phrases max) et EXTRAITS avec timecodes.'
+    +' 3. Chaque Voix Off annonce la source par son nom avant l\'extrait.'
+    +' 4. Format extrait: (0\'00 - 0\'15) EXTRAIT 1 - Nom de la source:'
+    +' 5. La Voix Off ne repete jamais ce que l\'extrait dit.'
+    +' 6. Signature finale: '+sig; },
 
   enrobe: (duree, sig) => `Rédige l'ENROBÉ RADIO (texte du journaliste encadrant les extraits sonores) pour un sujet de ${duree}.
 L'enrobé présente et commente les extraits sans les paraphraser.
@@ -2386,12 +2389,26 @@ async function genererAtelier(){
     +'\nExtraits: '+cal.extraits+' maximum'
     +'\nREGLE ABSOLUE: utilise UNIQUEMENT les timecodes fournis. Ne jamais inventer un timecode.'
     +'\nSi pas de timecode reel: [EXTRAIT - description] sans chiffre.'
-    +'\n\nMODELE BON ENROBE RADIO 1m30:'
-    +'\nAgbandotor. Derriere ce mot fon se cache une ceremonie millenaire - un pacte entre les vivants et les divinites de la mer.'
-    +'\n[EXTRAIT TC:02:36 - presentation ceremonie - 20sec]'
-    +'\nUne protection que les familles renouvellent chaque annee. Car Mamie exige justice et offrandes.'
-    +'\n[EXTRAIT TC:03:13 - role protecteur - 25sec]'
-    +'\nTognon Doudedji FATCHINA, Cotonou, Radio Benin.';
+    +'\n\nMODELE DE REFERENCE - VRAI REPORTAGE RADIO 1m30 (imiter cette structure exacte):\n'
+    +'LANCEMENT (Presentateur studio):\n'
+    +'A Ouidah, la cite des Kpasse a vibre ce week-end au rythme de la tradition. Le couvent de la divinite Mami-Dan a accueilli la ceremonie de l\'Agbandoto. Entre spiritualite, offrandes et quete de protection, ce rite ancestral continue de rassembler les fideles autour des valeurs de justice et de reconnaissance. Sur place, notre reporter Tognon Doudedji Fatchina a recueilli les explications des dignitaires.\n'
+    +'\n(0\'00 - 0\'15) VOIX OFF:\n'
+    +'Sous le soleil de Ouidah, l\'effervescence est palpable. Les fideles, vetis de blanc, se pressent au couvent Mamie Dan. L\'Agbandoto n\'est pas une simple fete: c\'est un acte de gratitude envers les divinites Mami et Dan. Sa majeste Togbe Yedi.\n'
+    +'\n(0\'15 - 0\'38) EXTRAIT 1 - Le Dignitaire:\n'
+    +'[ici l\'extrait sonore - le journaliste ne le retranscrit pas]\n'
+    +'\n(0\'38 - 0\'55) VOIX OFF:\n'
+    +'Ici, la ferveur est partagee. Mais attention: le rituel de l\'Agbandoto repose sur une ethique stricte. Pas de sacrifices sanglants: seule la purete des intentions compte, ajoute Togbe Yedi.\n'
+    +'\n(0\'55 - 1\'20) EXTRAIT 2 - Le Dignitaire:\n'
+    +'[ici l\'extrait sonore]\n'
+    +'\n(1\'20 - 1\'30) VOIX OFF:\n'
+    +'La ceremonie s\'est achevee dans le partage, rappelant que la tradition demeure un ciment social fort a Ouidah.\n'
+    +'\nREGLES DE STRUCTURE TIREES DE CE MODELE:\n'
+    +'1. LANCEMENT = presentateur studio, pose lieu+evenement+contexte+annonce reporter.\n'
+    +'2. VOIX OFF = jamais plus de 4 phrases. Annonce la source par son nom AVANT l\'extrait.\n'
+    +'3. EXTRAIT = le journaliste n\'ecrit pas le contenu - il indique [EXTRAIT TC:xx - description - duree].\n'
+    +'4. La VOIX OFF ne repete jamais ce que l\'extrait va dire.\n'
+    +'5. Format timecode: (0\'00 - 0\'15) pas [00:15].\n'
+    +'6. Signature: Nom, Lieu, Media. en fin du dernier voix off.';
 
   var prompt = instruction
     +'\n\nMÉDIA: '+selectedMedia.toUpperCase()+' | GENRE: '+selectedGenre+' | DURÉE: '+duree
