@@ -2284,14 +2284,31 @@ async function transcrireAudio(){
 }
 
 async function identifierExtraits(transcription){
-  const sys = `Tu es un journaliste radio expert en montage. Analyse la transcription fournie et identifie les 3 à 5 meilleurs extraits pour un reportage radio. Pour chaque extrait, donne: le timecode de début, la durée estimée, le type (AMBIANCE/SYNCHRO/INTERVIEW), et pourquoi cet extrait est pertinent. Réponds en JSON strict: {"extraits":[{"tc":"00:15","duree":"0:25","type":"INTERVIEW","texte":"...","raison":"..."}]}`;
+  var sysExtraits = 'Tu es un journaliste radio expert. Analyse cette transcription et identifie les 3 meilleurs extraits.'
+    +' Pour chaque extrait donne le timecode exact, la duree, le type (INTERVIEW/AMBIANCE/SYNCHRO), le texte exact.'
+    +' REPONDS UNIQUEMENT EN JSON VALIDE, rien d\'autre, pas de markdown:'
+    +' {"extraits":[{"tc":"00:15","duree":"0:25","type":"INTERVIEW","texte":"texte exact de l\'extrait","raison":"pourquoi cet extrait"}]}';
   try{
-    const result = await callIASmart(sys,[{role:'user',content:'Transcription:\n'+transcription}],'journa');
-    const clean = result.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(clean);
-    conducteurData = parsed.extraits||[];
-    renderConducteur();
-  }catch(e){console.warn('Identification extraits:',e);}
+    showToast('Identification des extraits...');
+    var result = await callIASmart(sysExtraits,[{role:'user',content:'Transcription avec timecodes:\n'+transcription}],'journa');
+    // Nettoyer la réponse
+    var clean = result.replace(/```json/g,'').replace(/```/g,'').trim();
+    // Extraire le JSON si entouré de texte
+    var jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if(jsonMatch) clean = jsonMatch[0];
+    var parsed = JSON.parse(clean);
+    if(parsed.extraits && parsed.extraits.length > 0){
+      conducteurData = parsed.extraits;
+      renderConducteur();
+      showToast(conducteurData.length+' extraits identifies avec timecodes !');
+    } else {
+      showToast('Extraits non identifies - verification JSON');
+      console.warn('JSON vide:', clean);
+    }
+  }catch(e){
+    console.warn('Identification extraits echec:', e.message);
+    showToast('Extraits: identification echouee - vous pouvez quand meme Rediger');
+  }
 }
 
 function formatTC(seconds){
