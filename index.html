@@ -215,10 +215,54 @@
     .doc-type.sel{border-color:var(--gold);background:var(--gold-dim);color:var(--gold);font-weight:600;}
     .router-badge{font-size:.62rem;padding:2px 7px;border-radius:8px;background:var(--purple-dim);color:#A78BFA;border:1px solid rgba(124,58,237,.25);margin-left:6px;}
     @media(min-width:600px){.mgrid{grid-template-columns:repeat(3,1fr)}.msg{max-width:70%}.ggrid{grid-template-columns:repeat(5,1fr)}}
+
+    /* ══ V9 — SCROLL ARROW ══ */
+    #scrollBtn{position:fixed;bottom:90px;right:14px;width:40px;height:40px;border-radius:50%;background:var(--gold);color:#000;border:none;font-size:1.2rem;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.4);transition:.2s;}
+    #scrollBtn.show{display:flex;}
+    /* ══ V9 — COPY + FEEDBACK sur messages ══ */
+    .msg-actions{display:flex;gap:6px;margin-top:6px;opacity:0;transition:.2s;}
+    .msg.bot:hover .msg-actions{opacity:1;}
+    .msg-actions button{background:none;border:1px solid var(--border);border-radius:6px;color:var(--fg-muted);font-size:.7rem;padding:3px 8px;cursor:pointer;transition:.15s;}
+    .msg-actions button:hover{background:var(--bg-elevated);color:var(--fg);}
+    .msg-actions button.liked{color:#7CB87A;border-color:#7CB87A;}
+    .msg-actions button.disliked{color:var(--danger);border-color:var(--danger);}
+    /* ══ V9 — MÉDIA SELECTOR BIC ══ */
+    .media-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+    .media-tab{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:none;color:var(--fg-muted);font-size:.78rem;cursor:pointer;transition:.2s;font-family:inherit;}
+    .media-tab.active{background:var(--gold);color:#000;border-color:var(--gold);font-weight:600;}
+    .genre-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+    .genre-tab{padding:5px 11px;border-radius:16px;border:1.5px solid var(--border);background:none;color:var(--fg-muted);font-size:.75rem;cursor:pointer;transition:.2s;font-family:inherit;}
+    .genre-tab.active{background:var(--bg-elevated);color:var(--fg);border-color:var(--gold);}
+    /* ══ V9 — MÉMOIRE LONGUE/STRAT ══ */
+    .mem-niv-tab{padding:6px 14px;border-radius:16px;border:1.5px solid var(--border);background:none;color:var(--fg-muted);font-size:.76rem;cursor:pointer;transition:.2s;font-family:inherit;}
+    .mem-niv-tab.active{background:var(--gold-dim);color:var(--gold);border-color:var(--gold);}
+    /* ══ V9 — AUDIO IMPORT ══ */
+    .audio-drop{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;color:var(--fg-muted);font-size:.82rem;cursor:pointer;transition:.2s;margin-bottom:10px;}
+    .audio-drop:hover{border-color:var(--gold);color:var(--gold);}
+    .audio-drop.loaded{border-color:#7CB87A;color:#7CB87A;background:rgba(124,184,122,.07);}
+    /* ══ V9 — CONDUCTEUR MONTAGE ══ */
+    .conducteur-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);}
+    .conducteur-tc{font-size:.72rem;color:var(--gold);font-family:monospace;min-width:50px;padding-top:2px;}
+    .conducteur-type{font-size:.7rem;padding:2px 7px;border-radius:10px;background:var(--bg-elevated);color:var(--fg-muted);white-space:nowrap;}
+    .conducteur-txt{font-size:.8rem;line-height:1.6;flex:1;}
   </style>
 </head>
 <body>
+<div id="errBox" style="display:none;position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:12px;font-size:.75rem;z-index:9999;word-break:break-all;"></div>
+<script>
+window.onerror=function(msg,src,line,col,err){
+  var b=document.getElementById('errBox');
+  if(b){b.style.display='block';b.textContent='ERR L'+line+':'+col+' — '+msg;}
+  return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  var b=document.getElementById('errBox');
+  if(b){b.style.display='block';b.textContent='PROMISE ERR — '+(e.reason&&e.reason.message||e.reason);}
+});
+</script>
+
 <div class="ambient"></div>
+<button id="scrollBtn" onclick="scrollToBottom()" title="Aller en bas">↓</button>
 <div class="sec-banner" id="secBanner">🛡️ <strong>Alerte Houessè :</strong> <span id="secMsg">Tentative d'injection bloquée.</span></div>
 
 <!-- HEADER -->
@@ -230,7 +274,7 @@
       </div>
       <div>
         <div class="app-name">Houessè</div>
-        <div class="app-tagline" id="appTagline">v8 · BIC · Radio Bénin · Gbékoun</div>
+        <div class="app-tagline" id="appTagline">v9 · BIC · Radio Bénin · Gbékoun</div>
       </div>
     </div>
     <div class="header-actions">
@@ -518,16 +562,24 @@
 <div class="module" id="mod-atelier">
   <div class="pad">
     <div class="card ca" style="margin-bottom:14px;">
-      <h3>🎙️ Atelier BIC — Tognon Doudédji FATCHINA</h3>
-      <p style="font-size:.78rem;color:var(--fg-muted);margin:0 0 12px;">Radio Bénin · Bénin Info Culture · Journalisme culturel</p>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-        <button class="doc-type sel" data-type="papier" onclick="selAtelierType(this)">🎙️ Papier radio</button>
-        <button class="doc-type" data-type="enrobe" onclick="selAtelierType(this)">📝 Enrobé</button>
-        <button class="doc-type" data-type="conducteur" onclick="selAtelierType(this)">📋 Conducteur</button>
-        <button class="doc-type" data-type="article" onclick="selAtelierType(this)">📰 Article BIC</button>
-        <button class="doc-type" data-type="correction" onclick="selAtelierType(this)">✏️ Correction</button>
+      <h3>🎙️ Atelier BIC</h3>
+      <p style="font-size:.78rem;color:var(--fg-muted);margin:0 0 12px;">Tognon Doudédji FATCHINA · Bénin Info Culture</p>
+
+      <!-- SÉLECTEUR MÉDIA -->
+      <label class="flbl" style="font-size:.67rem;margin-bottom:6px;">MÉDIA</label>
+      <div class="media-tabs" id="mediaTabs">
+        <button class="media-tab active" data-media="radio" onclick="selMedia(this)">📻 Radio</button>
+        <button class="media-tab" data-media="web" onclick="selMedia(this)">🌐 Web</button>
+        <button class="media-tab" data-media="tv" onclick="selMedia(this)">📺 TV</button>
+        <button class="media-tab" data-media="presse" onclick="selMedia(this)">📰 Presse</button>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px;">
+
+      <!-- SÉLECTEUR GENRE (dynamique selon média) -->
+      <label class="flbl" style="font-size:.67rem;margin-bottom:6px;">GENRE</label>
+      <div class="genre-tabs" id="genreTabs"></div>
+
+      <!-- FORMAT + LIEU (radio/tv) -->
+      <div id="formatLieuRow" style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;"><label class="flbl" style="font-size:.67rem;">Format</label>
           <select id="atelierFormat" class="inp" style="font-size:.82rem;padding:8px 10px;">
             <option value="1m30">Court — 1m30</option>
@@ -538,21 +590,50 @@
           </select>
         </div>
         <div style="flex:1;"><label class="flbl" style="font-size:.67rem;">Lieu (terrain)</label>
-          <input type="text" id="atelierLieu" class="inp" style="font-size:.82rem;padding:8px 10px;" placeholder="Cotonou, Djougou…">
+          <input type="text" id="atelierLieu" class="inp" style="font-size:.82rem;padding:8px 10px;" placeholder="Cotonou, Porto-Novo…">
         </div>
       </div>
-      <div class="fg"><label class="flbl">Notes brutes / Transcription audio / Idées</label>
-        <textarea id="atelierContenu" class="inp" rows="6" placeholder="Collez ici vos notes, la transcription de votre audio, les points clés de votre reportage…&#10;&#10;Houessè rédigera dans votre style journalistique."></textarea>
+
+      <!-- IMPORT AUDIO -->
+      <div id="audioImportZone" style="margin-bottom:10px;">
+        <label class="flbl" style="font-size:.67rem;">AUDIO (interview, ambiances — jusqu'à 1h)</label>
+        <div class="audio-drop" id="audioDrop" onclick="document.getElementById('audioFile').click()">
+          🎵 Appuyez pour importer un fichier audio
+          <br><span style="font-size:.7rem;opacity:.6;">MP3, WAV, M4A, OGG</span>
+        </div>
+        <input type="file" id="audioFile" accept="audio/*" style="display:none" onchange="importerAudio(this)">
+        <div id="audioInfo" style="display:none;font-size:.75rem;color:#7CB87A;margin-bottom:8px;"></div>
+        <button id="transcrireBtn" onclick="transcrireAudio()" style="display:none;" class="btn" style="font-size:.78rem;padding:7px 14px;">
+          🎯 Transcrire + identifier extraits
+        </button>
+        <div id="transcrireResult" style="display:none;" class="card" style="margin-top:10px;font-size:.8rem;"></div>
       </div>
-      <button class="btn btn-g" id="atelierBtn" onclick="genererAtelier()">🎙️ Rédiger dans mon style</button>
+
+      <!-- NOTES / MATIÈRE -->
+      <div class="fg">
+        <label class="flbl">Notes brutes · Transcription · Points clés</label>
+        <textarea id="atelierContenu" class="inp" rows="5" placeholder="Collez ici vos notes, transcription audio, points clés du reportage…
+
+Houessè rédigera selon le média et le genre choisis."></textarea>
+      </div>
+
+      <button class="btn btn-g" id="atelierBtn" onclick="genererAtelier()">✍️ Rédiger</button>
     </div>
+
+    <!-- RÉSULTAT -->
     <div id="atelierResultat" style="display:none;" class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="margin:0;">📄 Document BIC</h3>
+        <h3 style="margin:0;" id="atelierResultTitre">📄 Document BIC</h3>
         <div style="display:flex;gap:6px;">
           <button onclick="copyAtelier()" style="font-size:.72rem;padding:5px 10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;color:var(--fg);cursor:pointer;">📋 Copier</button>
           <button onclick="exportAtelier()" style="font-size:.72rem;padding:5px 10px;background:var(--gold-dim);border:1px solid rgba(232,165,75,.3);border-radius:6px;color:var(--gold);cursor:pointer;">💾 .txt</button>
         </div>
+      </div>
+      <!-- Conducteur de montage (si audio) -->
+      <div id="conducteurMontage" style="display:none;margin-bottom:14px;">
+        <h4 style="font-size:.82rem;color:var(--gold);margin:0 0 8px;">🎬 Conducteur de montage</h4>
+        <div id="conducteurRows"></div>
+        <button onclick="exportConducteur()" style="margin-top:8px;font-size:.72rem;padding:5px 10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;color:var(--fg);cursor:pointer;">📋 Exporter conducteur</button>
       </div>
       <div id="atelierTexte" style="font-size:.85rem;line-height:1.9;white-space:pre-wrap;color:var(--fg);max-height:60vh;overflow-y:auto;font-family:'Georgia',serif;"></div>
     </div>
@@ -731,6 +812,27 @@
     <div class="tog-row"><div><div class="tl-title">🏠 Données Syvile</div><div class="tl-sub">Injecter les relevés</div></div><div class="tog on" id="tglSy" onclick="this.classList.toggle('on')"></div></div>
     <div class="tog-row"><div><div class="tl-title">𐍈 Gbékoun appris</div><div class="tl-sub">Injecter les signes maîtrisés</div></div><div class="tog on" id="tglAl" onclick="this.classList.toggle('on')"></div></div>
 
+    <!-- PROFIL BIC -->
+    <div class="stitle" style="margin-top:14px;margin-bottom:10px;">🎙️ Profil BIC — Identité journalistique</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <div style="flex:1;"><label class="flbl" style="font-size:.63rem;">Nom complet</label>
+        <input type="text" id="pNom" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="Tognon Doudédji FATCHINA"></div>
+      <div style="flex:1;"><label class="flbl" style="font-size:.63rem;">Média</label>
+        <input type="text" id="pMedia" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="Radio Bénin"></div>
+    </div>
+    <div style="margin-bottom:8px;"><label class="flbl" style="font-size:.63rem;">Projet / Structure</label>
+      <input type="text" id="pProjet" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="Bénin Info Culture (BIC)"></div>
+    <div style="margin-bottom:8px;"><label class="flbl" style="font-size:.63rem;">Style rédactionnel</label>
+      <input type="text" id="pStyle" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="informatif, chaleureux, pédagogique"></div>
+    <div style="margin-bottom:8px;"><label class="flbl" style="font-size:.63rem;">Sujets de prédilection</label>
+      <input type="text" id="pSujets" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="culture, patrimoine, langues, festivals…"></div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <div style="flex:1;"><label class="flbl" style="font-size:.63rem;">Signature studio</label>
+        <input type="text" id="pSigStudio" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="Nom, Média."></div>
+      <div style="flex:1;"><label class="flbl" style="font-size:.63rem;">Signature terrain</label>
+        <input type="text" id="pSigTerrain" class="inp" style="font-size:.79rem;padding:8px 10px;" placeholder="Nom, Ville, Média."></div>
+    </div>
+
     <div class="mfoot">
       <button class="btn btn-gh f1" onclick="closeModal('modalSet')">Annuler</button>
       <button class="btn btn-gh f1" onclick="testAllKeys()" style="font-size:.82rem;">🧪 Tout tester</button>
@@ -901,7 +1003,7 @@ function updTagline(){
   const hasKey=getAvail().length>0;
   document.getElementById('appTagline').textContent=hasKey
     ?`${S.mem.length} mémoires · ${S.alph.learned.length} signes Gbékoun maîtrisés`
-    :'v8 · BIC · Radio Bénin · Gbékoun';
+    :'v9 · BIC · Radio Bénin · Gbékoun';
 }
 
 // ══ PARAMÈTRES ══
@@ -930,6 +1032,14 @@ function openSettings(){
       const tc=document.getElementById('tglCloud');if(tc)tc.classList.toggle('on',S.cloud.enabled!==false);
     }
   }catch(e){console.error('openSettings',e);}
+  // Charger profil BIC
+  try{
+    var fields={pNom:'name',pMedia:'media',pProjet:'projet',pStyle:'style',pSujets:'sujets',pSigStudio:'sig_studio',pSigTerrain:'sig_terrain'};
+    Object.keys(fields).forEach(function(id){
+      var el=document.getElementById(id);
+      if(el&&S.user&&S.user[fields[id]]) el.value=S.user[fields[id]];
+    });
+  }catch(e2){}
   openModal('modalSet');
 }
 function setMode(m){
@@ -964,6 +1074,25 @@ function saveSettings(){
   try{updTagline();}catch(e){}
   try{updateCtx();}catch(e){}
   closeModal('modalSet');
+
+  // Profil BIC
+  const pNom=document.getElementById('pNom');
+  const pMedia=document.getElementById('pMedia');
+  const pProjet=document.getElementById('pProjet');
+  const pStyle=document.getElementById('pStyle');
+  const pSujets=document.getElementById('pSujets');
+  const pSigStudio=document.getElementById('pSigStudio');
+  const pSigTerrain=document.getElementById('pSigTerrain');
+  if(pNom&&pNom.value.trim()){
+    S.user.name=pNom.value.trim();
+    S.user.media=pMedia&&pMedia.value.trim()||S.user.media;
+    S.user.projet=pProjet&&pProjet.value.trim()||S.user.projet;
+    S.user.style=pStyle&&pStyle.value.trim()||S.user.style;
+    S.user.sujets=pSujets&&pSujets.value.trim()||S.user.sujets;
+    S.user.sig_studio=pSigStudio&&pSigStudio.value.trim()||S.user.sig_studio;
+    S.user.sig_terrain=pSigTerrain&&pSigTerrain.value.trim()||S.user.sig_terrain;
+    updTagline();
+  }
   showToast('Paramètres sauvegardés ✓');
   if(S.cloud&&S.cloud.enabled&&S.cloud.url&&S.cloud.key) cloudSave();
 }
@@ -1476,14 +1605,60 @@ function updateCtx(){
 }
 function addMsg(role,txt){
   const c=document.getElementById('chatMsgs');
-  const d=document.createElement('div');d.className=`msg ${role}`;
+  const d=document.createElement('div');d.className='msg '+role;
   d.innerHTML=role==='user'?esc(txt):fmtAI(txt);
-  c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+  if(role==='bot'){
+    const actions=document.createElement('div');
+    actions.className='msg-actions';
+    actions.innerHTML=
+      '<button onclick="copyMsg(this)" title="Copier">📋 Copier</button>'+
+      '<button onclick="feedbackMsg(this,1)" title="Bonne réponse">👍</button>'+
+      '<button onclick="feedbackMsg(this,0)" title="Mauvaise réponse">👎</button>';
+    d.appendChild(actions);
+  }
+  c.appendChild(d);
+  // Scroll et afficher flèche si pas en bas
+  const atBottom = c.scrollHeight-c.scrollTop-c.clientHeight < 100;
+  if(atBottom) c.scrollTop=c.scrollHeight;
+  checkScrollBtn();
+  return d;
+}
+function copyMsg(btn){
+  const msg=btn.closest('.msg');
+  const txt=msg.innerText.replace('📋 Copier👍👎','').trim();
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Copié !'));
+}
+function feedbackMsg(btn,val){
+  btn.classList.add(val?'liked':'disliked');
+  showToast(val?'👍 Merci !':'👎 Noté — on va améliorer');
+  if(!S.feedback) S.feedback=[];
+  const msg=btn.closest('.msg');
+  const txt=msg.innerText.replace('📋 Copier👍👎','').trim().substring(0,200);
+  S.feedback.push({val,txt,at:new Date().toISOString()});
+  save();
+}
+function scrollToBottom(){
+  const c=document.getElementById('chatMsgs');
+  c.scrollTo({top:c.scrollHeight,behavior:'smooth'});
+  checkScrollBtn();
+}
+function checkScrollBtn(){
+  const c=document.getElementById('chatMsgs');
+  const btn=document.getElementById('scrollBtn');
+  if(!btn||!c) return;
+  const atBottom=c.scrollHeight-c.scrollTop-c.clientHeight<150;
+  btn.classList.toggle('show',!atBottom);
 }
 function fmtAI(t){return t.replace(/```[\s\S]*?```/g,m=>`<pre style="background:var(--bg-dark);padding:10px;border-radius:6px;overflow-x:auto;font-size:.77rem;">${esc(m.replace(/```\w*\n?/g,''))}</pre>`).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+)\*/g,'<em>$1</em>').replace(/\n/g,'<br>')}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function showTyp(){const c=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='typing';d.id='typeDot';d.innerHTML='<span></span><span></span><span></span>';c.appendChild(d);c.scrollTop=c.scrollHeight;}
 function hideTyp(){const e=document.getElementById('typeDot');if(e)e.remove();}
+
+// Listener scroll pour la flèche
+document.addEventListener('DOMContentLoaded',()=>{
+  const c=document.getElementById('chatMsgs');
+  if(c) c.addEventListener('scroll',checkScrollBtn);
+});
 
 async function sendChat(){
   const inp=document.getElementById('chatIn'),msg=inp.value.trim();
@@ -1893,14 +2068,269 @@ function exportTxt(){
 // Les clés API restent locales (sécurité) — afficher info si 0 clés au démarrage
 
 
-// ══ ATELIER BIC — Tognon Doudédji FATCHINA ══
-let selectedAtelierType = 'papier';
+// ══ ATELIER BIC V9 — MÉDIA × GENRE ══
+let selectedMedia = 'radio';
+let selectedGenre = 'papier';
 let policeSignesValides = {};
+let audioBlob = null;
+let transcriptionData = null;
+let conducteurData = [];
 
-function selAtelierType(btn){
-  document.querySelectorAll('#mod-atelier .doc-type').forEach(b=>b.classList.remove('sel'));
-  btn.classList.add('sel');
-  selectedAtelierType = btn.dataset.type;
+const GENRES = {
+  radio:  [{id:'papier',    lbl:'🎙️ Papier radio'},
+           {id:'enrobe',    lbl:'📝 Enrobé'},
+           {id:'conducteur',lbl:'📋 Conducteur'},
+           {id:'breve',     lbl:'⚡ Brève'},
+           {id:'correction',lbl:'✏️ Correction'}],
+  web:    [{id:'article',   lbl:'📰 Article'},
+           {id:'breve_web', lbl:'⚡ Brève web'},
+           {id:'portrait',  lbl:'👤 Portrait'},
+           {id:'interview', lbl:'💬 Interview'},
+           {id:'correction',lbl:'✏️ Correction'}],
+  tv:     [{id:'sujet_tv',  lbl:'📺 Sujet TV'},
+           {id:'conducteur',lbl:'📋 Conducteur'},
+           {id:'off',       lbl:'🎬 Commentaire off'},
+           {id:'correction',lbl:'✏️ Correction'}],
+  presse: [{id:'article_p', lbl:'📄 Article'},
+           {id:'breve_p',   lbl:'⚡ Brève'},
+           {id:'editorial', lbl:'✍️ Éditorial'},
+           {id:'portrait',  lbl:'👤 Portrait'},
+           {id:'correction',lbl:'✏️ Correction'}]
+};
+
+const REGLES_MEDIA = {
+  radio: `RÈGLES RADIO ABSOLUES — Ces règles ne souffrent aucune exception:
+• Écrire pour être DIT, pas lu — chaque phrase doit sonner à l'oreille
+• Jamais de "Bonjour, je suis [nom]" — le lancement est informatif, pas une présentation
+• Jamais de "Nous vous proposons", "Nous avons eu l'occasion", "Nous sommes fiers"
+• Phrases courtes, sujet-verbe-complément, rythmées
+• Ouverture directe sur le fait — l'information dès le premier mot
+• Densité maximale — zéro remplissage, zéro formule creuse
+• AMBIANCES intégrées dans le texte avec indication claire: [AMBIANCE — description]
+• Signature sobre en fin: Nom, Lieu, Média. (point final)
+• Respecter exactement la durée demandée
+EXEMPLE DE BON DÉBUT: "Le Bénin brille à nouveau sur la scène internationale. [Nom], de son vrai nom [X], vient de remporter..."
+EXEMPLE DE MAUVAIS DÉBUT: "Bonjour, aujourd'hui nous vous présentons un jeune artiste qui..."`,
+
+  web: `RÈGLES WEB/NUMÉRIQUE:
+• Titre accrocheur et précis — l'essentiel en moins de 10 mots
+• Chapeau (2-3 phrases) résumant les 5W: Qui Quoi Où Quand Pourquoi
+• Paragraphes courts (3-4 lignes max)
+• Pyramide inversée — le plus important en premier
+• Sous-titres pour aérer si article long
+• Ton informatif et accessible
+• Mots-clés naturels dans le texte`,
+
+  tv: `RÈGLES TV/AUDIOVISUEL:
+• Texte synchronisé avec l'image — ne pas décrire ce qu'on voit déjà
+• Commentaire off calé sur durée des plans
+• Identification claire des séquences: [PLAN — description]
+• Timecodes précis pour chaque extrait
+• Texte court — l'image parle, le off complète
+• Structure: [TC DÉBUT] [TYPE DE PLAN] [DURÉE] [TEXTE OFF]`,
+
+  presse: `RÈGLES PRESSE ÉCRITE:
+• Pyramide inversée stricte
+• Lead fort: accroche + essentiel en 2-3 phrases
+• Développement progressif des faits
+• Citations intégrées naturellement
+• Chapeau si article long
+• Style sobre et factuel
+• Aucune familiarité excessive`
+};
+
+const INSTRUCTIONS_GENRE = {
+  // RADIO
+  papier: (duree, sig, lieu) => `Rédige un PAPIER RADIO de ${duree}.
+Structure exacte:
+[LANCEMENT — journaliste studio, 2-3 phrases max, informatif, direct]
+[PAPIER — corps du reportage avec AMBIANCES intégrées]
+[SIGNATURE: ${sig}]`,
+
+  enrobe: (duree, sig) => `Rédige l'ENROBÉ RADIO (texte du journaliste encadrant les extraits sonores) pour un sujet de ${duree}.
+L'enrobé présente et commente les extraits sans les paraphraser.
+Signature finale: ${sig}`,
+
+  conducteur: () => `Rédige un CONDUCTEUR D'ÉMISSION complet.
+Format ligne par ligne:
+[TC] | [ÉLÉMENT] | [DURÉE] | [INTERVENANT/CONTENU]
+Exemple: 00:00 | GÉNÉRIQUE | 0:15 | Jingle BIC
+Inclure: génériques, lancements, papiers, ambiances, interviews, pubs si besoin.`,
+
+  breve: (sig) => `Rédige une BRÈVE RADIO (20-30 secondes max).
+Une seule information, formulée en 2-3 phrases directes.
+Signature: ${sig}`,
+
+  // WEB
+  article: () => `Rédige un ARTICLE WEB pour Bénin Info Culture (BIC).
+Inclure: Titre accrocheur + Chapeau (2-3 phrases) + Corps structuré.
+Ton informatif, culturel, richesse linguistique.`,
+
+  breve_web: () => `Rédige une BRÈVE WEB (100-150 mots max).
+Titre + 2-3 paragraphes courts couvrant les 5W.`,
+
+  portrait: () => `Rédige un PORTRAIT JOURNALISTIQUE.
+Structure: accroche personnelle + parcours + citation + contexte + ouverture.`,
+
+  interview: () => `Rédige une INTERVIEW ÉCRITE.
+Format questions-réponses. Questions percutantes, réponses fidèles à la matière fournie.`,
+
+  // TV
+  sujet_tv: (duree) => `Rédige un SUJET TV de ${duree}.
+Format: [TC] [PLAN] [DURÉE] [TEXTE OFF ou SYNCHRO]
+Distinguer clairement: OFF (commentaire off caméra) et SYNCHRO (parole à l'image).`,
+
+  off: (duree) => `Rédige le COMMENTAIRE OFF pour un sujet TV de ${duree}.
+Texte calibré pour accompagner les images — ne pas décrire l'évident.
+Indiquer les points de respiration pour les plans forts.`,
+
+  // PRESSE
+  article_p: () => `Rédige un ARTICLE DE PRESSE.
+Lead fort + développement en pyramide inversée + citation(s) + contexte.`,
+
+  breve_p: () => `Rédige une BRÈVE PRESSE (80-120 mots).
+Essentiel en pyramide inversée stricte.`,
+
+  editorial: () => `Rédige un ÉDITORIAL.
+Point de vue argumenté, ton affirmé, conclusion forte.`,
+
+  // COMMUN
+  correction: (nom) => `Corrige et enrichis ce texte en gardant EXACTEMENT le style de ${nom}.
+Améliore sans dénaturer — richesse linguistique, clarté, fluidité.
+Ne change pas le fond, seulement la forme.`
+};
+
+function selMedia(btn){
+  document.querySelectorAll('.media-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedMedia = btn.dataset.media;
+  renderGenres();
+  // Afficher/masquer format selon média
+  const showFormat = selectedMedia==='radio'||selectedMedia==='tv';
+  document.getElementById('formatLieuRow').style.display = showFormat?'flex':'none';
+}
+
+function renderGenres(){
+  const container = document.getElementById('genreTabs');
+  const genres = GENRES[selectedMedia]||GENRES.radio;
+  selectedGenre = genres[0].id;
+  container.innerHTML = genres.map((g,i)=>
+    `<button class="genre-tab${i===0?' active':''}" data-genre="${g.id}" onclick="selGenre(this)">${g.lbl}</button>`
+  ).join('');
+}
+
+function selGenre(btn){
+  document.querySelectorAll('.genre-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedGenre = btn.dataset.genre;
+}
+
+function importerAudio(input){
+  const file = input.files[0];
+  if(!file) return;
+  audioBlob = file;
+  document.getElementById('audioDrop').className = 'audio-drop loaded';
+  document.getElementById('audioDrop').innerHTML = '🎵 '+file.name+' ('+Math.round(file.size/1024/1024,1)+' Mo)';
+  document.getElementById('audioInfo').style.display='block';
+  document.getElementById('audioInfo').textContent = 'Audio prêt — cliquez "Transcrire" ou entrez vos notes manuellement';
+  document.getElementById('transcrireBtn').style.display='block';
+}
+
+async function transcrireAudio(){
+  if(!audioBlob){showToast("Importez d'abord un fichier audio");return;}
+  const groqKey = S.ai.keys&&S.ai.keys.groq;
+  if(!groqKey){showToast('Clé Groq requise pour la transcription');return;}
+
+  const btn = document.getElementById('transcrireBtn');
+  btn.textContent='⟳ Transcription en cours…';btn.disabled=true;
+
+  try{
+    const fd = new FormData();
+    fd.append('file', audioBlob, audioBlob.name||'audio.mp3');
+    fd.append('model','whisper-large-v3');
+    fd.append('language','fr');
+    fd.append('response_format','verbose_json');
+    fd.append('timestamp_granularities[]','segment');
+
+    const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+groqKey},
+      body:fd
+    });
+    if(!r.ok){const e=await r.json();throw new Error(e.error&&e.error.message||r.status);}
+    const data = await r.json();
+
+    // Construire la transcription avec timecodes
+    transcriptionData = data;
+    let transcriptionText = '';
+    if(data.segments){
+      data.segments.forEach(seg=>{
+        const tc = formatTC(seg.start);
+        transcriptionText += `[${tc}] ${seg.text.trim()}
+`;
+      });
+    } else {
+      transcriptionText = data.text;
+    }
+
+    // Mettre dans la zone de notes
+    const noteZone = document.getElementById('atelierContenu');
+    noteZone.value = (noteZone.value?noteZone.value+'\n\n':'')+'── TRANSCRIPTION AUDIO ──\n'+transcriptionText;
+
+    // Identifier les extraits avec l'IA
+    await identifierExtraits(transcriptionText);
+
+    document.getElementById('transcrireResult').style.display='block';
+    document.getElementById('transcrireResult').innerHTML = '<div style="color:#7CB87A;font-size:.8rem;">✅ Transcription terminée — '+data.segments.length+' segments | Extraits identifiés ci-dessus</div>';
+    showToast('✅ Audio transcrit !');
+  }catch(e){showToast('Erreur transcription: '+e.message);}
+  btn.textContent='🎯 Transcrire + identifier extraits';btn.disabled=false;
+}
+
+async function identifierExtraits(transcription){
+  const sys = `Tu es un journaliste radio expert en montage. Analyse la transcription fournie et identifie les 3 à 5 meilleurs extraits pour un reportage radio. Pour chaque extrait, donne: le timecode de début, la durée estimée, le type (AMBIANCE/SYNCHRO/INTERVIEW), et pourquoi cet extrait est pertinent. Réponds en JSON strict: {"extraits":[{"tc":"00:15","duree":"0:25","type":"INTERVIEW","texte":"...","raison":"..."}]}`;
+  try{
+    const result = await callIASmart(sys,[{role:'user',content:'Transcription:\n'+transcription}],'journa');
+    const clean = result.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    conducteurData = parsed.extraits||[];
+    renderConducteur();
+  }catch(e){console.warn('Identification extraits:',e);}
+}
+
+function formatTC(seconds){
+  const m = Math.floor(seconds/60);
+  const s = Math.floor(seconds%60);
+  return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+}
+
+function renderConducteur(){
+  if(!conducteurData.length) return;
+  const zone = document.getElementById('conducteurMontage');
+  const rows = document.getElementById('conducteurRows');
+  zone.style.display='block';
+  rows.innerHTML = conducteurData.map(e=>`
+    <div class="conducteur-row">
+      <div class="conducteur-tc">${e.tc}</div>
+      <div class="conducteur-type">${e.type}</div>
+      <div class="conducteur-txt">${e.texte}<br><span style="font-size:.7rem;color:var(--fg-muted);">${e.raison||''} · ${e.duree||''}</span></div>
+    </div>`).join('');
+}
+
+function exportConducteur(){
+  let txt = 'CONDUCTEUR DE MONTAGE — BIC\n';
+  txt += new Date().toLocaleDateString('fr-FR')+'\n\n';
+  txt += 'TC\t\tTYPE\t\tCONTENU\n';
+  txt += '─'.repeat(60)+'\n';
+  conducteurData.forEach(e=>{
+    txt += e.tc+'\t\t'+e.type+'\t\t'+e.texte+'\n';
+  });
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Conducteur-BIC-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+  showToast('📋 Conducteur exporté !');
 }
 
 async function genererAtelier(){
@@ -1913,47 +2343,50 @@ async function genererAtelier(){
   const btn = document.getElementById('atelierBtn');
   btn.textContent='⟳ Rédaction en cours…';btn.disabled=true;
 
-  const durees = {'1m30':'1 minute 30 secondes','2m00':'2 minutes','2m30':'2 minutes 30 secondes','3m00':'3 minutes','6m30':'6 minutes 30 secondes (dossier)'};
+  const durees = {'1m30':'1 min 30 sec','2m00':'2 minutes','2m30':'2 min 30 sec','3m00':'3 minutes','6m30':'6 min 30 sec (dossier)'};
   const duree = durees[format]||format;
+  const sig = lieu ? S.user.name+', '+lieu+', '+S.user.media+'.' : S.user.sig_studio;
 
-  const sig = lieu ? `${S.user.name}, ${lieu}, ${S.user.media}.` : S.user.sig_studio;
+  const getInstr = INSTRUCTIONS_GENRE[selectedGenre];
+  const instruction = getInstr ? getInstr(duree, sig, lieu, S.user.name) : `Rédige un document journalistique professionnel pour ${selectedMedia}.`;
 
-  const typeInstructions = {
-    papier: `Rédige un PAPIER RADIO de ${duree} lancement compris. Structure: [LANCEMENT journaliste studio] + [PAPIER ${S.user.name}]. Termine par la signature: ${sig}`,
-    enrobe: `Rédige l'ENROBÉ (texte du journaliste qui encadre les extraits sonores) pour un sujet de ${duree}. Signature finale: ${sig}`,
-    conducteur: `Rédige un CONDUCTEUR D'ÉMISSION détaillé avec timecodes, extraits suggérés, enrobés. Format: [TC] [ÉLÉMENT] [DURÉE] [CONTENU]`,
-    article: `Rédige un ARTICLE pour le site web Bénin Info Culture (BIC). Ton informatif et culturel, richesse linguistique, clair et soutenu.`,
-    correction: `Corrige et enrichis ce texte en gardant EXACTEMENT le style de ${S.user.name}. Améliore sans dénaturer. Richesse linguistique avérée mais claire et soutenue.`
-  };
+  const regleMedia = REGLES_MEDIA[selectedMedia]||REGLES_MEDIA.radio;
 
   const sys = `Tu es l'assistant éditorial de ${S.user.name}, journaliste à ${S.user.media}.
 Style: ${S.user.style}. Sujets: ${S.user.sujets}.
-RÈGLES ABSOLUES pour la radio:
-- Écrire pour être DIT, pas lu
-- Phrases courtes et rythmées
-- Aller droit à l'essentiel dès la première phrase
-- Densité maximale, zéro remplissage
-- Respecter exactement les durées demandées
-- Richesse linguistique avérée mais claire et soutenue
-- Conserver l'humanité et la chaleur du journaliste`;
 
-  const prompt = `${typeInstructions[selectedAtelierType]||typeInstructions.papier}
+${regleMedia}
 
-MATIÈRE PREMIÈRE (notes/transcription):
+MODÈLE DE RÉFÉRENCE — BON PAPIER RADIO (à imiter pour le style radio):
+BA 12H45 — ÉDITION OPA — PRIX RFI 13.03.26
+Le Bénin brille à nouveau sur la scène musicale internationale. OPA, de son vrai nom Tossou Paoli, vient d'être sacré Lauréat du Prix Découvertes RFI 2026. À 24 ans, l'enfant de Bohicon s'impose comme le nouveau visage d'une Afrique qui réconcilie ses racines et sa modernité. Tognon Doudédji FATCHINA.
+[AMBIANCE 1 — Début du titre]
+OPA c'est avec ce titre qu'il a honoré le Bénin. Sa musique est avant tout une passerelle — entre les rythmes ancestraux du Bénin et les pulsations du Jazz ou de l'Afrobeat. Ce jeune prodige refuse de choisir.
+[AMBIANCE 2 — Refrain de Yelian]
+C'est avec "Yelian" qu'il a été révélé au Bénin. En remportant ce Prix RFI, OPA ne gagne pas seulement un trophée personnel — il devient l'ambassadeur d'une scène béninoise en pleine ébullition.
+[AMBIANCE 3 — Fin du morceau]`;
+
+  const prompt = `${instruction}
+
+MÉDIA: ${selectedMedia.toUpperCase()} | GENRE: ${selectedGenre}
+${conducteurData.length?'EXTRAITS IDENTIFIÉS: '+conducteurData.map(e=>e.tc+' '+e.type+' "'+e.texte.substring(0,40)+'..."').join(' | '):''}
+
+MATIÈRE PREMIÈRE:
 ${contenu}
 
-${lieu?'Lieu de reportage: '+lieu:'(Studio)'}
+${lieu?'Lieu: '+lieu:'(Studio)'}
 
-Produis maintenant le document final, professionnel, prêt à l'antenne ou publication.`;
+Produis maintenant le document final, prêt à l'antenne ou publication.`;
 
   try{
-    const result = await callIASmart(sys,[{role:'user',content:prompt}], 'creative');
+    const result = await callIASmart(sys,[{role:'user',content:prompt}],'journa');
+    document.getElementById('atelierResultTitre').textContent = selectedMedia.toUpperCase()+' · '+selectedGenre;
     document.getElementById('atelierTexte').textContent = result;
     document.getElementById('atelierResultat').style.display='block';
     document.getElementById('atelierResultat').scrollIntoView({behavior:'smooth'});
     showToast('✅ Document BIC généré !');
   }catch(e){showToast('Erreur: '+e.message);}
-  btn.textContent='🎙️ Rédiger dans mon style';btn.disabled=false;
+  btn.textContent='✍️ Rédiger';btn.disabled=false;
 }
 
 function copyAtelier(){
@@ -1966,7 +2399,7 @@ function exportAtelier(){
   const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'BIC-'+selectedAtelierType+'-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.download = 'BIC-'+selectedMedia+'-'+selectedGenre+'-'+new Date().toISOString().slice(0,10)+'.txt';
   a.click();
   showToast('💾 Exporté !');
 }
@@ -2109,6 +2542,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   },2000);
   initHome();syvile.init();alph.renderGrid();
   updAIDot();updateCtx();initWelcome();renderMem();
+  try{renderGenres();}catch(e){console.warn('renderGenres:',e);}
 });
 
 // ══ PWA ══
