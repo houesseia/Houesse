@@ -2099,45 +2099,41 @@ const GENRES = {
 };
 
 const REGLES_MEDIA = {
-  radio: `RÈGLES RADIO ABSOLUES — Ces règles ne souffrent aucune exception:
-• Écrire pour être DIT, pas lu — chaque phrase doit sonner à l'oreille
-• Jamais de "Bonjour, je suis [nom]" — le lancement est informatif, pas une présentation
-• Jamais de "Nous vous proposons", "Nous avons eu l'occasion", "Nous sommes fiers"
-• Phrases courtes, sujet-verbe-complément, rythmées
-• Ouverture directe sur le fait — l'information dès le premier mot
-• Densité maximale — zéro remplissage, zéro formule creuse
-• AMBIANCES intégrées dans le texte avec indication claire: [AMBIANCE — description]
-• Signature sobre en fin: Nom, Lieu, Média. (point final)
-• Respecter exactement la durée demandée
-EXEMPLE DE BON DÉBUT: "Le Bénin brille à nouveau sur la scène internationale. [Nom], de son vrai nom [X], vient de remporter..."
-EXEMPLE DE MAUVAIS DÉBUT: "Bonjour, aujourd'hui nous vous présentons un jeune artiste qui..."`,
+  radio: 'REGLES RADIO ABSOLUES:'
+    +' Ecrire pour etre DIT, pas lu.'
+    +' Jamais de Bonjour je suis [nom] - le lancement est informatif.'
+    +' Jamais de Nous vous proposons, Nous avons eu l\'occasion, Nous sommes fiers.'
+    +' Phrases courtes, sujet-verbe-complement, rythmees.'
+    +' Ouverture directe sur le fait - l\'information des le premier mot.'
+    +' Densite maximale - zero remplissage, zero formule creuse.'
+    +' AMBIANCES integrees dans le texte: [AMBIANCE - description].'
+    +' Signature sobre en fin: Nom, Lieu, Media. (point final).'
+    +' Respecter exactement la duree demandee.'
+    +' EXEMPLE BON DEBUT: Le Benin brille a nouveau sur la scene internationale.'
+    +' EXEMPLE MAUVAIS DEBUT: Bonjour, aujourd\'hui nous vous presentons...',
 
-  web: `RÈGLES WEB/NUMÉRIQUE:
-• Titre accrocheur et précis — l'essentiel en moins de 10 mots
-• Chapeau (2-3 phrases) résumant les 5W: Qui Quoi Où Quand Pourquoi
-• Paragraphes courts (3-4 lignes max)
-• Pyramide inversée — le plus important en premier
-• Sous-titres pour aérer si article long
-• Ton informatif et accessible
-• Mots-clés naturels dans le texte`,
+  web: 'REGLES WEB:'
+    +' Titre accrocheur et precis - l\'essentiel en moins de 10 mots.'
+    +' Chapeau (2-3 phrases) resumant les 5W: Qui Quoi Ou Quand Pourquoi.'
+    +' Paragraphes courts (3-4 lignes max).'
+    +' Pyramide inversee - le plus important en premier.'
+    +' Ton informatif et accessible.',
 
-  tv: `RÈGLES TV/AUDIOVISUEL:
-• Texte synchronisé avec l'image — ne pas décrire ce qu'on voit déjà
-• Commentaire off calé sur durée des plans
-• Identification claire des séquences: [PLAN — description]
-• Timecodes précis pour chaque extrait
-• Texte court — l'image parle, le off complète
-• Structure: [TC DÉBUT] [TYPE DE PLAN] [DURÉE] [TEXTE OFF]`,
+  tv: 'REGLES TV:'
+    +' Texte synchronise avec l\'image - ne pas decrire ce qu\'on voit deja.'
+    +' Commentaire off cale sur duree des plans.'
+    +' Identification claire des sequences: [PLAN - description].'
+    +' Timecodes precis pour chaque extrait.'
+    +' Structure: [TC] [TYPE DE PLAN] [DUREE] [TEXTE OFF].',
 
-  presse: `RÈGLES PRESSE ÉCRITE:
-• Pyramide inversée stricte
-• Lead fort: accroche + essentiel en 2-3 phrases
-• Développement progressif des faits
-• Citations intégrées naturellement
-• Chapeau si article long
-• Style sobre et factuel
-• Aucune familiarité excessive`
+  presse: 'REGLES PRESSE:'
+    +' Pyramide inversee stricte.'
+    +' Lead fort: accroche + essentiel en 2-3 phrases.'
+    +' Developpement progressif des faits.'
+    +' Citations integrees naturellement.'
+    +' Style sobre et factuel.'
 };
+
 
 const INSTRUCTIONS_GENRE = {
   // RADIO
@@ -2352,31 +2348,41 @@ async function genererAtelier(){
 
   const regleMedia = REGLES_MEDIA[selectedMedia]||REGLES_MEDIA.radio;
 
-  const sys = `Tu es l'assistant éditorial de ${S.user.name}, journaliste à ${S.user.media}.
-Style: ${S.user.style}. Sujets: ${S.user.sujets}.
+  // Calibrage durée
+  var calibrage = {'1m30':{mots:220,extraits:2},'2m00':{mots:290,extraits:2},'2m30':{mots:360,extraits:3},'3m00':{mots:440,extraits:3},'6m30':{mots:950,extraits:6}};
+  var cal = calibrage[format]||calibrage['2m30'];
 
-${regleMedia}
+  // Extraits réels ou avertissement
+  var hasExtraits = conducteurData&&conducteurData.length>0;
+  var extraitsBlock = hasExtraits
+    ? 'EXTRAITS RÉELS (timecodes issus de la transcription — utilise-les EXACTEMENT, ne les invente pas):\n'
+      + conducteurData.slice(0,cal.extraits).map(function(e,i){
+          return (i+1)+'. TC='+e.tc+' | TYPE='+e.type+' | TEXTE="'+e.texte+'"';
+        }).join('\n')
+    : 'AUCUN EXTRAIT TRANSCRIT — indique [EXTRAIT — description] SANS timecode. Ne jamais inventer un timecode.';
 
-MODÈLE DE RÉFÉRENCE — BON PAPIER RADIO (à imiter pour le style radio):
-BA 12H45 — ÉDITION OPA — PRIX RFI 13.03.26
-Le Bénin brille à nouveau sur la scène musicale internationale. OPA, de son vrai nom Tossou Paoli, vient d'être sacré Lauréat du Prix Découvertes RFI 2026. À 24 ans, l'enfant de Bohicon s'impose comme le nouveau visage d'une Afrique qui réconcilie ses racines et sa modernité. Tognon Doudédji FATCHINA.
-[AMBIANCE 1 — Début du titre]
-OPA c'est avec ce titre qu'il a honoré le Bénin. Sa musique est avant tout une passerelle — entre les rythmes ancestraux du Bénin et les pulsations du Jazz ou de l'Afrobeat. Ce jeune prodige refuse de choisir.
-[AMBIANCE 2 — Refrain de Yelian]
-C'est avec "Yelian" qu'il a été révélé au Bénin. En remportant ce Prix RFI, OPA ne gagne pas seulement un trophée personnel — il devient l'ambassadeur d'une scène béninoise en pleine ébullition.
-[AMBIANCE 3 — Fin du morceau]`;
+  var sys = 'Tu es l\'assistant éditorial de '+S.user.name+', journaliste à '+S.user.media+'.'
+    +'\nStyle: '+S.user.style+'. Sujets: '+S.user.sujets+'.'
+    +'\n\n'+regleMedia
+    +'\n\nCALIBRAGE STRICT:'
+    +'\nDuree: '+duree+' = environ '+cal.mots+' mots max'
+    +'\nExtraits: '+cal.extraits+' maximum'
+    +'\nREGLE ABSOLUE: utilise UNIQUEMENT les timecodes fournis. Ne jamais inventer un timecode.'
+    +'\nSi pas de timecode reel: [EXTRAIT - description] sans chiffre.'
+    +'\n\nMODELE BON ENROBE RADIO 1m30:'
+    +'\nAgbandotor. Derriere ce mot fon se cache une ceremonie millenaire - un pacte entre les vivants et les divinites de la mer.'
+    +'\n[EXTRAIT TC:02:36 - presentation ceremonie - 20sec]'
+    +'\nUne protection que les familles renouvellent chaque annee. Car Mamie exige justice et offrandes.'
+    +'\n[EXTRAIT TC:03:13 - role protecteur - 25sec]'
+    +'\nTognon Doudedji FATCHINA, Cotonou, Radio Benin.';
 
-  const prompt = `${instruction}
+  var prompt = instruction
+    +'\n\nMÉDIA: '+selectedMedia.toUpperCase()+' | GENRE: '+selectedGenre+' | DURÉE: '+duree
+    +'\n\n'+extraitsBlock
+    +'\n\nMATIÈRE PREMIÈRE:\n'+contenu
+    +'\n\n'+(lieu?'Lieu: '+lieu:'(Studio)')
+    +'\n\nProduis le document final. Max '+cal.mots+' mots. Max '+cal.extraits+' extraits.';
 
-MÉDIA: ${selectedMedia.toUpperCase()} | GENRE: ${selectedGenre}
-${conducteurData.length?'EXTRAITS IDENTIFIÉS: '+conducteurData.map(e=>e.tc+' '+e.type+' "'+e.texte.substring(0,40)+'..."').join(' | '):''}
-
-MATIÈRE PREMIÈRE:
-${contenu}
-
-${lieu?'Lieu: '+lieu:'(Studio)'}
-
-Produis maintenant le document final, prêt à l'antenne ou publication.`;
 
   try{
     const result = await callIASmart(sys,[{role:'user',content:prompt}],'journa');
