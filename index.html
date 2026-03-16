@@ -1175,7 +1175,7 @@ const TASK_PROFILES = {
   // Réponse rapide → Groq (latence minimale)
   fast:     {p:['groq','puter','openrouter'],                       kw:[/vite|rapide|résumé|courte?ment|en bref|tl;dr/i]},
   // Journalisme BIC → Claude (qualité rédactionnelle maximale)
-  journa:   {p:['anthropic','openrouter','puter','groq'],           kw:[/papier|enrobé|conducteur|reportage|antenne|bic|rédige.*style|journalis/i]},
+  journa:   {p:['puter','anthropic','openrouter','groq'],           kw:[/papier|enrobé|conducteur|reportage|antenne|bic|rédige.*style|journalis/i]},
   // Confidentiel → Ollama (local, 0 fuite)
   private:  {p:['ollama','groq','puter','openrouter'],              kw:[/confidentiel|secret|privé|personnel|intime/i]},
   // Défaut équilibré
