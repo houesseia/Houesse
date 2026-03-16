@@ -2200,7 +2200,7 @@ const INSTRUCTIONS_GENRE = {
     +' NIVEAU 1 - COMMENCE par le LANCEMENT PRESENTATEUR (2-3 phrases, lieu+evenement+contexte, se termine par: Sur place notre reporter '+sig+' a recueilli...)'
     +' NIVEAU 2 - LE PAPIER: Voix Off (max 4 phrases) alternee avec EXTRAITS timecodes debut-fin.'
     +' JAMAIS commencer directement par la Voix Off sans le lancement.'
-    +' Signature finale: '+sig; },
+    +' Signature du reporter '+sig+' placee IMMEDIATEMENT APRES le lancement, avant la premiere Voix Off. PAS de signature a la fin du papier.'; },
 
   enrobe: (duree, sig) => `Rédige l'ENROBÉ RADIO (texte du journaliste encadrant les extraits sonores) pour un sujet de ${duree}.
 L'enrobé présente et commente les extraits sans les paraphraser.
@@ -2591,6 +2591,7 @@ async function genererAtelier(){
     +'[ici l\'extrait sonore]\n'
     +'\n(1\'20 - 1\'30) VOIX OFF:\n'
     +'La ceremonie s\'est achevee dans le partage, rappelant que la tradition demeure un ciment social fort a Ouidah.\n'
+    +'[PAS DE SIGNATURE ICI - elle est dans le lancement]\n'
     +'\nREGLES ABSOLUES - STRUCTURE EN 2 NIVEAUX:\n'
     +'NIVEAU 1 - LANCEMENT PRESENTATEUR (OBLIGATOIRE, TOUJOURS EN PREMIER):\n'
     +'- Ecrit par le presentateur studio, pas par le reporter.\n'
