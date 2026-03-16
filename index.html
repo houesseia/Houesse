@@ -24,6 +24,16 @@
       --fg:#F5F0E8;--fg-muted:#8A827A;--border:#2E2A24;
       --success:#7CB87A;--danger:#E85454;--radius:14px;--radius-sm:8px;
     }
+    /* ══ MODE CLAIR ══ */
+    body.light-mode {
+      --bg-dark:#F5F0E8;--bg-surface:#EDE8DE;--bg-card:#E8E2D6;--bg-elevated:#DDD6C8;
+      --fg:#1A1612;--fg-muted:#6B6358;--border:#C8C0B4;
+      --gold:#B8782A;--gold-bright:#C88A3A;--gold-deep:#9A6020;--gold-dim:rgba(184,120,42,0.12);
+    }
+    body.light-mode .app-header{background:rgba(245,240,232,.96);}
+    body.light-mode .ambient::before{background:radial-gradient(ellipse at center bottom,rgba(184,120,42,0.04) 0%,transparent 70%);}
+    body.light-mode .msg.bot{background:var(--bg-card);}
+    body.light-mode .msg.user{background:rgba(184,120,42,0.15);}
     *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;margin:0;padding:0;overflow:hidden}
     body{font-family:'DM Sans',sans-serif;background:var(--bg-dark);color:var(--fg);display:flex;flex-direction:column;height:100%}
@@ -245,6 +255,14 @@
     .conducteur-tc{font-size:.72rem;color:var(--gold);font-family:monospace;min-width:50px;padding-top:2px;}
     .conducteur-type{font-size:.7rem;padding:2px 7px;border-radius:10px;background:var(--bg-elevated);color:var(--fg-muted);white-space:nowrap;}
     .conducteur-txt{font-size:.8rem;line-height:1.6;flex:1;}
+
+    /* Angles éditoriaux */
+    .angle-btn{display:block;width:100%;text-align:left;padding:8px 12px;margin-bottom:6px;background:var(--bg-dark);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--fg);font-family:inherit;font-size:.78rem;cursor:pointer;transition:.2s;line-height:1.4;}
+    .angle-btn:hover{border-color:var(--gold);color:var(--gold);}
+    .angle-btn.choisi{border-color:var(--gold);background:var(--gold-dim);color:var(--gold);}
+    .extrait-item{padding:8px 10px;margin-bottom:6px;background:var(--bg-dark);border-left:3px solid var(--gold);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.78rem;}
+    .extrait-tc{color:var(--gold);font-family:monospace;font-size:.72rem;font-weight:700;}
+    .etape-badge{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#000;font-size:.65rem;font-weight:700;text-align:center;line-height:20px;margin-right:6px;}
   </style>
 </head>
 <body>
@@ -278,6 +296,7 @@ window.addEventListener('unhandledrejection',function(e){
       </div>
     </div>
     <div class="header-actions">
+      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Jour / Nuit" style="font-size:1rem;">☀️</button>
       <button id="pwaInstallBtn" class="icon-btn" onclick="installPWA()" title="Installer l'app" style="display:none;background:var(--green-dim);border-color:rgba(34,197,94,.3);color:var(--success);">
         <svg viewBox="0 0 24 24"><path d="M12 2v13M8 11l4 4 4-4M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/></svg>
       </button>
@@ -594,30 +613,54 @@ window.addEventListener('unhandledrejection',function(e){
         </div>
       </div>
 
-      <!-- IMPORT AUDIO -->
-      <div id="audioImportZone" style="margin-bottom:10px;">
-        <label class="flbl" style="font-size:.67rem;">AUDIO (interview, ambiances — jusqu'à 1h)</label>
+      <!-- ÉTAPE 1 — IMPORT AUDIO -->
+      <div class="card" style="margin-bottom:10px;padding:12px;background:var(--bg-elevated);">
+        <div style="font-size:.72rem;color:var(--gold);font-weight:700;margin-bottom:8px;">ÉTAPE 1 — AUDIO OU NOTES</div>
         <div class="audio-drop" id="audioDrop" onclick="document.getElementById('audioFile').click()">
-          🎵 Appuyez pour importer un fichier audio
-          <br><span style="font-size:.7rem;opacity:.6;">MP3, WAV, M4A, OGG</span>
+          🎵 Importer audio (MP3, WAV, M4A — jusqu'à 1h)
         </div>
         <input type="file" id="audioFile" accept="audio/*" style="display:none" onchange="importerAudio(this)">
-        <div id="audioInfo" style="display:none;font-size:.75rem;color:#7CB87A;margin-bottom:8px;"></div>
-        <button id="transcrireBtn" onclick="transcrireAudio()" style="display:none;" class="btn" style="font-size:.78rem;padding:7px 14px;">
-          🎯 Transcrire + identifier extraits
+        <div id="audioInfo" style="display:none;font-size:.75rem;color:#7CB87A;margin:6px 0;"></div>
+        <button id="transcrireBtn" onclick="transcrireAudio()" style="display:none;width:100%;margin-top:6px;" class="btn">
+          🎯 Transcrire l'audio
         </button>
-        <div id="transcrireResult" style="display:none;" class="card" style="margin-top:10px;font-size:.8rem;"></div>
+        <div style="margin-top:8px;">
+          <label class="flbl" style="font-size:.65rem;">OU — Notes brutes / Transcription manuelle</label>
+          <textarea id="atelierContenu" class="inp" rows="4" placeholder="Collez ici vos notes de terrain, transcription, points clés…"></textarea>
+        </div>
       </div>
 
-      <!-- NOTES / MATIÈRE -->
-      <div class="fg">
-        <label class="flbl">Notes brutes · Transcription · Points clés</label>
-        <textarea id="atelierContenu" class="inp" rows="5" placeholder="Collez ici vos notes, transcription audio, points clés du reportage…
-
-Houessè rédigera selon le média et le genre choisis."></textarea>
+      <!-- ÉTAPE 2 — ANGLE ÉDITORIAL -->
+      <div class="card" id="etape2Zone" style="margin-bottom:10px;padding:12px;background:var(--bg-elevated);">
+        <div style="font-size:.72rem;color:var(--gold);font-weight:700;margin-bottom:8px;">ÉTAPE 2 — ANGLE ÉDITORIAL</div>
+        <div id="anglesProposesZone" style="display:none;margin-bottom:8px;">
+          <div style="font-size:.75rem;color:var(--fg-muted);margin-bottom:6px;">Houessè propose — choisissez ou reformulez :</div>
+          <div id="anglesList"></div>
+        </div>
+        <div class="fg">
+          <label class="flbl" style="font-size:.65rem;">Angle choisi / reformulé</label>
+          <input type="text" id="angleChoisi" class="inp" style="font-size:.82rem;padding:8px 10px;"
+            placeholder="Ex: La dimension éthique de l'Agbandotô — Mamie punit l'injustice">
+        </div>
+        <button id="proposerAnglesBtn" onclick="proposerAngles()" class="btn" style="width:100%;margin-top:6px;">
+          💡 Proposer des angles
+        </button>
       </div>
 
-      <button class="btn btn-g" id="atelierBtn" onclick="genererAtelier()">✍️ Rédiger</button>
+      <!-- ÉTAPE 3 — EXTRAITS -->
+      <div class="card" id="etape3Zone" style="margin-bottom:10px;padding:12px;background:var(--bg-elevated);display:none;">
+        <div style="font-size:.72rem;color:var(--gold);font-weight:700;margin-bottom:8px;">ÉTAPE 3 — EXTRAITS SÉLECTIONNÉS</div>
+        <div id="extraitsList" style="font-size:.8rem;"></div>
+        <button onclick="selectionnerExtraits()" class="btn" style="width:100%;margin-top:6px;">
+          🎬 Sélectionner les extraits selon l'angle
+        </button>
+      </div>
+
+      <!-- ÉTAPE 4 — RÉDIGER -->
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn" id="angleBtn" onclick="proposerAngles()" style="flex:1;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg);font-size:.8rem;">📐 Angles</button>
+        <button class="btn btn-g" id="atelierBtn" onclick="genererAtelier()" style="flex:2;">✍️ Rédiger</button>
+      </div>
     </div>
 
     <!-- RÉSULTAT -->
@@ -1637,6 +1680,21 @@ function feedbackMsg(btn,val){
   S.feedback.push({val,txt,at:new Date().toISOString()});
   save();
 }
+function toggleTheme(){
+  var isLight = document.body.classList.toggle('light-mode');
+  var btn = document.getElementById('themeBtn');
+  if(btn) btn.textContent = isLight ? '🌙' : '☀️';
+  localStorage.setItem('h_theme', isLight ? 'light' : 'dark');
+}
+function loadTheme(){
+  var t = localStorage.getItem('h_theme');
+  if(t === 'light'){
+    document.body.classList.add('light-mode');
+    var btn = document.getElementById('themeBtn');
+    if(btn) btn.textContent = '🌙';
+  }
+}
+
 function scrollToBottom(){
   const c=document.getElementById('chatMsgs');
   c.scrollTo({top:c.scrollHeight,behavior:'smooth'});
@@ -2274,7 +2332,8 @@ async function transcrireAudio(){
 
     // Mettre dans la zone de notes
     const noteZone = document.getElementById('atelierContenu');
-    noteZone.value = (noteZone.value?noteZone.value+'\n\n':'')+'── TRANSCRIPTION AUDIO ──\n'+transcriptionText;
+    transcriptionComplete = '── TRANSCRIPTION AUDIO ──\n'+transcriptionText;
+    noteZone.value = (noteZone.value?noteZone.value+'\n\n':'')+transcriptionComplete;
 
     // Identifier les extraits avec l'IA
     await identifierExtraits(transcriptionText);
@@ -2349,10 +2408,128 @@ function exportConducteur(){
   showToast('📋 Conducteur exporté !');
 }
 
-async function genererAtelier(){
-  const contenu = document.getElementById('atelierContenu').value.trim();
-  if(!contenu){showToast('Entrez vos notes ou transcription');return;}
+// ══ VARIABLES WORKFLOW ÉDITORIAL ══
+let transcriptionComplete = '';
+let anglesData = [];
+let extraitsSelectionnes = [];
+
+// ══ ÉTAPE 2 — PROPOSER DES ANGLES ══
+async function proposerAngles(){
+  var base = transcriptionComplete || document.getElementById('atelierContenu').value.trim();
+  if(!base){showToast('Importez un audio ou entrez des notes');return;}
   if(!getAvail().length){showToast('Configurez un fournisseur IA');return;}
+
+  var btn = document.getElementById('proposerAnglesBtn');
+  btn.textContent = 'Analyse en cours...';btn.disabled=true;
+
+  var media = selectedMedia.toUpperCase();
+  var genre = selectedGenre;
+  var format = document.getElementById('atelierFormat').value;
+
+  var sys = 'Tu es un secretaire de redaction expert en journalisme '+media+'.'
+    +' Ton role: proposer 3 angles editoriaux distincts et percutants pour un sujet.'
+    +' Un angle = une idee centrale, un point de vue, un fait saillant qui guide tout le papier.'
+    +' REPONDS UNIQUEMENT EN JSON VALIDE: {"angles":[{"titre":"...","description":"...","accroche":"..."}]}';
+
+  var prompt = 'Media: '+media+' | Genre: '+genre+' | Duree: '+format
+    +'\nAnalyse ce materiau et propose 3 angles editoriaux differents:'
+    +'\n\n'+base.substring(0,3000)
+    +'\n\nChaque angle doit avoir: titre court (5 mots max), description (1 phrase), accroche possible (1 phrase ouverture).';
+
+  try{
+    var result = await callIASmart(sys,[{role:'user',content:prompt}],'journa');
+    var clean = result.replace(/```json/g,'').replace(/```/g,'').trim();
+    var jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if(jsonMatch) clean = jsonMatch[0];
+    var parsed = JSON.parse(clean);
+    anglesData = parsed.angles||[];
+
+    var zone = document.getElementById('anglesProposesZone');
+    var list = document.getElementById('anglesList');
+    zone.style.display = 'block';
+    list.innerHTML = anglesData.map(function(a,i){
+      return '<button class="angle-btn" onclick="choisirAngle('+i+',this)">'
+        +'<strong>'+a.titre+'</strong><br>'
+        +'<span style="opacity:.7;font-size:.72rem;">'+a.description+'</span><br>'
+        +'<span style="color:var(--gold);font-size:.72rem;font-style:italic;">'+a.accroche+'</span>'
+        +'</button>';
+    }).join('');
+
+    document.getElementById('etape3Zone').style.display = 'block';
+    showToast(anglesData.length+' angles proposes - choisissez !');
+  }catch(e){
+    showToast('Erreur angles: '+e.message);
+    console.warn(e);
+  }
+  btn.textContent='Reproposer des angles';btn.disabled=false;
+}
+
+function choisirAngle(idx, btn){
+  document.querySelectorAll('.angle-btn').forEach(function(b){b.classList.remove('choisi');});
+  btn.classList.add('choisi');
+  var angle = anglesData[idx];
+  document.getElementById('angleChoisi').value = angle.titre+' - '+angle.description;
+}
+
+// ══ ÉTAPE 3 — SÉLECTIONNER EXTRAITS SELON L'ANGLE ══
+async function selectionnerExtraits(){
+  var angle = document.getElementById('angleChoisi').value.trim();
+  var base = transcriptionComplete || document.getElementById('atelierContenu').value.trim();
+  if(!angle){showToast('Definissez un angle editorial');return;}
+  if(!base){showToast('Importez un audio ou entrez des notes');return;}
+
+  var format = document.getElementById('atelierFormat').value;
+  var nbExtraits = {
+    '1m30':2,'2m00':2,'2m30':3,'3m00':3,'6m30':5
+  }[format]||2;
+
+  var dureeExtrait = {
+    '1m30':'20 a 25 secondes','2m00':'20 a 25 secondes',
+    '2m30':'20 a 30 secondes','3m00':'25 a 35 secondes','6m30':'30 a 45 secondes'
+  }[format]||'20 a 25 secondes';
+
+  var sys = 'Tu es un monteur radio expert.'
+    +' Ton role: identifier les meilleurs extraits d\'une transcription selon un angle editorial.'
+    +' REPONDS UNIQUEMENT EN JSON VALIDE:'
+    +' {"extraits":[{"num":1,"tc_debut":"0\'15","tc_fin":"0\'38","type":"INTERVIEW","locuteur":"Nom","texte":"texte exact de l\'extrait","raison":"pourquoi cet extrait sert l\'angle"}]}';
+
+  var prompt = 'ANGLE EDITORIAL: '+angle
+    +'\nNombre d\'extraits voulus: '+nbExtraits
+    +'\nDuree par extrait: '+dureeExtrait
+    +'\n\nTRANSCRIPTION AVEC TIMECODES:\n'+base.substring(0,4000)
+    +'\n\nSelectionne exactement '+nbExtraits+' extraits qui servent le mieux cet angle.'
+    +' Timecodes debut ET fin obligatoires. Texte exact de l\'extrait.';
+
+  try{
+    showToast('Selection des extraits...');
+    var result = await callIASmart(sys,[{role:'user',content:prompt}],'journa');
+    var clean = result.replace(/```json/g,'').replace(/```/g,'').trim();
+    var jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if(jsonMatch) clean = jsonMatch[0];
+    var parsed = JSON.parse(clean);
+    extraitsSelectionnes = parsed.extraits||[];
+    conducteurData = extraitsSelectionnes.map(function(e){
+      return {tc:e.tc_debut, tc_fin:e.tc_fin, type:e.type, texte:e.texte, locuteur:e.locuteur||'', raison:e.raison||''};
+    });
+
+    var list = document.getElementById('extraitsList');
+    list.innerHTML = extraitsSelectionnes.map(function(e){
+      return '<div class="extrait-item">'
+        +'<div class="extrait-tc">('+e.tc_debut+' - '+e.tc_fin+') '+e.type+' - '+e.locuteur+'</div>'
+        +'<div style="margin-top:3px;">'+e.texte.substring(0,100)+'...</div>'
+        +'<div style="font-size:.68rem;color:var(--fg-muted);margin-top:2px;">'+e.raison+'</div>'
+        +'</div>';
+    }).join('');
+
+    renderConducteur();
+    showToast(extraitsSelectionnes.length+' extraits selectionnes !');
+  }catch(e){
+    showToast('Erreur extraits: '+e.message);
+    console.warn(e);
+  }
+}
+
+async function genererAtelier(){
 
   const format = document.getElementById('atelierFormat').value;
   const lieu = document.getElementById('atelierLieu').value.trim();
@@ -2372,14 +2549,28 @@ async function genererAtelier(){
   var calibrage = {'1m30':{mots:220,extraits:2},'2m00':{mots:290,extraits:2},'2m30':{mots:360,extraits:3},'3m00':{mots:440,extraits:3},'6m30':{mots:950,extraits:6}};
   var cal = calibrage[format]||calibrage['2m30'];
 
-  // Extraits réels ou avertissement
-  var hasExtraits = conducteurData&&conducteurData.length>0;
-  var extraitsBlock = hasExtraits
-    ? 'EXTRAITS RÉELS (timecodes issus de la transcription — utilise-les EXACTEMENT, ne les invente pas):\n'
+  // Angle editorial
+  var angle = document.getElementById('angleChoisi')&&document.getElementById('angleChoisi').value.trim();
+
+  // Extraits selon angle ou auto
+  var hasSelectionnes = extraitsSelectionnes&&extraitsSelectionnes.length>0;
+  var hasConducteur = conducteurData&&conducteurData.length>0;
+  var extraitsBlock;
+  if(hasSelectionnes){
+    extraitsBlock = 'EXTRAITS SELECTIONNES SELON ANGLE (timecodes debut ET fin - utilise-les EXACTEMENT):\n'
+      + extraitsSelectionnes.slice(0,cal.extraits).map(function(e,i){
+          return (i+1)+'. ('+e.tc_debut+' - '+e.tc_fin+') '+e.type+' - '+(e.locuteur||'')+': "'+e.texte+'"';
+        }).join('\n');
+  } else if(hasConducteur){
+    extraitsBlock = 'EXTRAITS IDENTIFIES PAR TRANSCRIPTION (timecodes - utilise-les EXACTEMENT):\n'
       + conducteurData.slice(0,cal.extraits).map(function(e,i){
-          return (i+1)+'. TC='+e.tc+' | TYPE='+e.type+' | TEXTE="'+e.texte+'"';
-        }).join('\n')
-    : 'AUCUN EXTRAIT TRANSCRIT — indique [EXTRAIT — description] SANS timecode. Ne jamais inventer un timecode.';
+          return (i+1)+'. TC='+e.tc+' | '+e.type+' | "'+e.texte+'"';
+        }).join('\n');
+  } else {
+    extraitsBlock = 'AUCUN EXTRAIT DEFINI - indique [EXTRAIT - description] SANS inventer de timecode.';
+  }
+  // Matière complète
+  var matiere = transcriptionComplete || contenu;
 
   var sys = 'Tu es l\'assistant éditorial de '+S.user.name+', journaliste à '+S.user.media+'.'
     +'\nStyle: '+S.user.style+'. Sujets: '+S.user.sujets+'.'
@@ -2413,9 +2604,10 @@ async function genererAtelier(){
   var prompt = instruction
     +'\n\nMÉDIA: '+selectedMedia.toUpperCase()+' | GENRE: '+selectedGenre+' | DURÉE: '+duree
     +'\n\n'+extraitsBlock
-    +'\n\nMATIÈRE PREMIÈRE:\n'+contenu
+    +'\n\n'+(angle?'ANGLE EDITORIAL: '+angle+'\n':'')
+    +'\n\nMATIERE PREMIERE + TRANSCRIPTION:\n'+matiere.substring(0,5000)
     +'\n\n'+(lieu?'Lieu: '+lieu:'(Studio)')
-    +'\n\nProduis le document final. Max '+cal.mots+' mots. Max '+cal.extraits+' extraits.';
+    +'\n\nProduis le document final. Angle: '+(angle||'selon la matiere')+'. Max '+cal.mots+' mots. Max '+cal.extraits+' extraits.';
 
 
   try{
@@ -2540,7 +2732,7 @@ function copierSVG(){
   navigator.clipboard.writeText(svg).then(()=>showToast('📋 SVG copié !'));
 }
 
-function compilerPolice(){
+async function compilerPolice(){
   const signes = Object.entries(policeSignesValides);
   if(!signes.length){showToast('Aucun signe validé');return;}
 
@@ -2583,6 +2775,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   initHome();syvile.init();alph.renderGrid();
   updAIDot();updateCtx();initWelcome();renderMem();
   try{renderGenres();}catch(e){console.warn('renderGenres:',e);}
+  loadTheme();
 });
 
 // ══ PWA ══
