@@ -2196,13 +2196,11 @@ const REGLES_MEDIA = {
 const INSTRUCTIONS_GENRE = {
   // RADIO
   papier: function(duree, sig, lieu){ return 'Redige un PAPIER RADIO de '+duree+'.'
-    +' Structure EXACTE a respecter:'
-    +' 1. LANCEMENT (Presentateur/Presentatrice studio) - 2-3 phrases, pose lieu+evenement+contexte+annonce reporter.'
-    +' 2. CORPS - alternance Voix Off (3-4 phrases max) et EXTRAITS avec timecodes.'
-    +' 3. Chaque Voix Off annonce la source par son nom avant l\'extrait.'
-    +' 4. Format extrait: (0\'00 - 0\'15) EXTRAIT 1 - Nom de la source:'
-    +' 5. La Voix Off ne repete jamais ce que l\'extrait dit.'
-    +' 6. Signature finale: '+sig; },
+    +' STRUCTURE EN 2 NIVEAUX OBLIGATOIRE:'
+    +' NIVEAU 1 - COMMENCE par le LANCEMENT PRESENTATEUR (2-3 phrases, lieu+evenement+contexte, se termine par: Sur place notre reporter '+sig+' a recueilli...)'
+    +' NIVEAU 2 - LE PAPIER: Voix Off (max 4 phrases) alternee avec EXTRAITS timecodes debut-fin.'
+    +' JAMAIS commencer directement par la Voix Off sans le lancement.'
+    +' Signature finale: '+sig; },
 
   enrobe: (duree, sig) => `Rédige l'ENROBÉ RADIO (texte du journaliste encadrant les extraits sonores) pour un sujet de ${duree}.
 L'enrobé présente et commente les extraits sans les paraphraser.
@@ -2593,13 +2591,21 @@ async function genererAtelier(){
     +'[ici l\'extrait sonore]\n'
     +'\n(1\'20 - 1\'30) VOIX OFF:\n'
     +'La ceremonie s\'est achevee dans le partage, rappelant que la tradition demeure un ciment social fort a Ouidah.\n'
-    +'\nREGLES DE STRUCTURE TIREES DE CE MODELE:\n'
-    +'1. LANCEMENT = presentateur studio, pose lieu+evenement+contexte+annonce reporter.\n'
-    +'2. VOIX OFF = jamais plus de 4 phrases. Annonce la source par son nom AVANT l\'extrait.\n'
-    +'3. EXTRAIT = le journaliste n\'ecrit pas le contenu - il indique [EXTRAIT TC:xx - description - duree].\n'
-    +'4. La VOIX OFF ne repete jamais ce que l\'extrait va dire.\n'
-    +'5. Format timecode: (0\'00 - 0\'15) pas [00:15].\n'
-    +'6. Signature: Nom, Lieu, Media. en fin du dernier voix off.';
+    +'\nREGLES ABSOLUES - STRUCTURE EN 2 NIVEAUX:\n'
+    +'NIVEAU 1 - LANCEMENT PRESENTATEUR (OBLIGATOIRE, TOUJOURS EN PREMIER):\n'
+    +'- Ecrit par le presentateur studio, pas par le reporter.\n'
+    +'- 2-3 phrases: lieu + evenement + contexte + annonce du reporter.\n'
+    +'- Se termine par: Sur place, notre reporter [Nom] a recueilli...\n'
+    +'- JAMAIS sauter cette etape. JAMAIS commencer directement par la Voix Off.\n'
+    +'\nNIVEAU 2 - LE PAPIER (apres le lancement):\n'
+    +'- Alterne Voix Off et Extraits avec timecodes debut-fin.\n'
+    +'- Format: (0\'00 - 0\'15) VOIX OFF: texte...\n'
+    +'- Format extrait: (0\'15 - 0\'38) EXTRAIT 1 - Nom source:\n'
+    +'- La Voix Off annonce la source par son nom AVANT l\'extrait.\n'
+    +'- La Voix Off NE REPETE JAMAIS ce que l\'extrait va dire.\n'
+    +'- Jamais plus de 4 phrases par Voix Off.\n'
+    +'- Verbatim extrait: nettoyer les hesitations sans trahir la parole.\n'
+    +'- Signature finale: Nom, Lieu, Media. (pas de point de suspension).';
 
   var prompt = instruction
     +'\n\nMÉDIA: '+selectedMedia.toUpperCase()+' | GENRE: '+selectedGenre+' | DURÉE: '+duree
