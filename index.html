@@ -1176,6 +1176,7 @@ const TASK_PROFILES = {
   fast:     {p:['groq','puter','openrouter'],                       kw:[/vite|rapide|résumé|courte?ment|en bref|tl;dr/i]},
   // Journalisme BIC → Claude (qualité rédactionnelle maximale)
   journa:   {p:['puter','anthropic','openrouter','groq'],           kw:[/papier|enrobé|conducteur|reportage|antenne|bic|rédige.*style|journalis/i]},
+  bic:      {p:['puter','anthropic'],                               kw:[]}, // Atelier BIC - Puter/Claude uniquement
   // Confidentiel → Ollama (local, 0 fuite)
   private:  {p:['ollama','groq','puter','openrouter'],              kw:[/confidentiel|secret|privé|personnel|intime/i]},
   // Défaut équilibré
@@ -2628,7 +2629,7 @@ async function genererAtelier(){
 
 
   try{
-    const result = await callIASmart(sys,[{role:'user',content:prompt}],'journa');
+    const result = await callIASmart(sys,[{role:'user',content:prompt}],'bic');
     document.getElementById('atelierResultTitre').textContent = selectedMedia.toUpperCase()+' · '+selectedGenre;
     document.getElementById('atelierTexte').textContent = result;
     document.getElementById('atelierResultat').style.display='block';
