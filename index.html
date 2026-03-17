@@ -2195,16 +2195,25 @@ const REGLES_MEDIA = {
 
 const INSTRUCTIONS_GENRE = {
   // RADIO
-  papier: function(duree, sig, lieu){ return 'Redige un PAPIER RADIO de '+duree+'.'
-    +' STRUCTURE EN 2 NIVEAUX OBLIGATOIRE:'
-    +' NIVEAU 1 - COMMENCE par le LANCEMENT PRESENTATEUR (2-3 phrases, lieu+evenement+contexte, se termine par: Sur place notre reporter '+sig+' a recueilli...)'
-    +' NIVEAU 2 - LE PAPIER: Voix Off (max 4 phrases) alternee avec EXTRAITS timecodes debut-fin.'
-    +' JAMAIS commencer directement par la Voix Off sans le lancement.'
-    +' Signature du reporter '+sig+' placee IMMEDIATEMENT APRES le lancement, avant la premiere Voix Off. PAS de signature a la fin du papier.'; },
+  papier: function(duree, sig, lieu){ return 'Redige un PAPIER RADIO de '+duree+'. UTILISE CE TEMPLATE EXACTEMENT:\n'
+    +'LANCEMENT (Presentateur studio):\n[2-3 phrases: lieu+evenement+contexte+annonce reporter]\n'
+    +sig+'\n\n'
+    +'(0\'00 - 0\'15) VOIX OFF:\n[intro - max 3 phrases - annonce source par son nom]\n\n'
+    +'(0\'15 - 0\'38) EXTRAIT 1 - [Nom source]:\n"[verbatim nettoye]"\n\n'
+    +'(0\'38 - 0\'55) VOIX OFF:\n[voix off 2 - max 3 phrases]\n\n'
+    +'(0\'55 - 1\'20) EXTRAIT 2 - [Nom source]:\n"[verbatim nettoye]"\n\n'
+    +'(1\'20 - 1\'30) VOIX OFF:\n[conclusion 2 phrases max]\n'
+    +'AUCUNE signature a la fin - elle est deja apres le lancement.'; },
 
-  enrobe: (duree, sig) => `Rédige l'ENROBÉ RADIO (texte du journaliste encadrant les extraits sonores) pour un sujet de ${duree}.
-L'enrobé présente et commente les extraits sans les paraphraser.
-Signature finale: ${sig}`,
+  enrobe: function(duree, sig){ return 'Redige un ENROBE RADIO de '+duree+'. UTILISE CE TEMPLATE EXACTEMENT:\n'
+    +'LANCEMENT (Presentateur studio):\n[2-3 phrases: lieu+evenement+contexte+annonce reporter]\n'
+    +sig+'\n\n'
+    +'(0\'00 - 0\'15) VOIX OFF:\n[intro - annonce source par son nom]\n\n'
+    +'(0\'15 - 0\'38) EXTRAIT 1 - [Nom source]:\n"[verbatim nettoye]"\n\n'
+    +'(0\'38 - 0\'55) VOIX OFF:\n[voix off 2]\n\n'
+    +'(0\'55 - 1\'20) EXTRAIT 2 - [Nom source]:\n"[verbatim nettoye]"\n\n'
+    +'(1\'20 - 1\'30) VOIX OFF:\n[conclusion]\n'
+    +'AUCUNE signature a la fin.'; },
 
   conducteur: () => `Rédige un CONDUCTEUR D'ÉMISSION complet.
 Format ligne par ligne:
@@ -2579,8 +2588,9 @@ async function genererAtelier(){
     +'\nREGLE ABSOLUE: utilise UNIQUEMENT les timecodes fournis. Ne jamais inventer un timecode.'
     +'\nSi pas de timecode reel: [EXTRAIT - description] sans chiffre.'
     +'\n\nMODELE DE REFERENCE - VRAI REPORTAGE RADIO 1m30 (imiter cette structure exacte):\n'
-    +'LANCEMENT (Presentateur studio):\n'
-    +'A Ouidah, la cite des Kpasse a vibre ce week-end au rythme de la tradition. Le couvent de la divinite Mami-Dan a accueilli la ceremonie de l\'Agbandoto. Entre spiritualite, offrandes et quete de protection, ce rite ancestral continue de rassembler les fideles autour des valeurs de justice et de reconnaissance. Sur place, notre reporter Tognon Doudedji Fatchina a recueilli les explications des dignitaires.\n'
+    +'LANCEMENT (Presentateur studio) - TOUJOURS EN PREMIER, SUIVI DE LA SIGNATURE:\n'
+    +'A Ouidah, la cite des Kpasse a vibre ce week-end au rythme de la tradition. Le couvent de la divinite Mami-Dan a accueilli la ceremonie de l\'Agbandoto. Ce rite ancestral rassemble les fideles autour des valeurs de justice et de reconnaissance. Sur place, notre reporter Tognon Doudedji Fatchina.\n'
+    +'[SIGNATURE ICI - immediatement apres le lancement, avant toute Voix Off]\n'
     +'\n(0\'00 - 0\'15) VOIX OFF:\n'
     +'Sous le soleil de Ouidah, l\'effervescence est palpable. Les fideles, vetis de blanc, se pressent au couvent Mamie Dan. L\'Agbandoto n\'est pas une simple fete: c\'est un acte de gratitude envers les divinites Mami et Dan. Sa majeste Togbe Yedi.\n'
     +'\n(0\'15 - 0\'38) EXTRAIT 1 - Le Dignitaire:\n'
@@ -2605,7 +2615,7 @@ async function genererAtelier(){
     +'- La Voix Off annonce la source par son nom AVANT l\'extrait.\n'
     +'- La Voix Off NE REPETE JAMAIS ce que l\'extrait va dire.\n'
     +'- Jamais plus de 4 phrases par Voix Off.\n'
-    +'- Verbatim extrait: nettoyer les hesitations sans trahir la parole.\n'
+    +'- Verbatim extrait: NETTOYER les hesitations, repetitions et coupures Whisper (ex: ce n pas -> ce n\'est pas, commenc -> commence). Garder le sens exact.\n'
     +'- Signature finale: Nom, Lieu, Media. (pas de point de suspension).';
 
   var prompt = instruction
