@@ -263,6 +263,25 @@
     .extrait-item{padding:8px 10px;margin-bottom:6px;background:var(--bg-dark);border-left:3px solid var(--gold);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.78rem;}
     .extrait-tc{color:var(--gold);font-family:monospace;font-size:.72rem;font-weight:700;}
     .etape-badge{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#000;font-size:.65rem;font-weight:700;text-align:center;line-height:20px;margin-right:6px;}
+  
+  /* ── HOUESSÈ AGENT BRIDGE ── */
+  #agent-badge { position:fixed;bottom:80px;right:16px;background:#1a1a2e;color:#fff;border:2px solid #e94560;border-radius:50px;padding:8px 14px;font-size:1.1rem;cursor:pointer;z-index:9000;display:none;align-items:center;gap:6px;box-shadow:0 4px 15px rgba(233,69,96,0.4); }
+  #agent-badge-count { background:#e94560;color:#fff;border-radius:50%;min-width:20px;height:20px;font-size:0.75rem;display:flex;align-items:center;justify-content:center;font-weight:bold; }
+  @keyframes agentPulse { 0%,100%{box-shadow:0 4px 15px rgba(233,69,96,0.4);}50%{box-shadow:0 4px 25px rgba(233,69,96,0.9);} }
+  #agent-badge.has-tasks { animation:agentPulse 1.5s infinite; }
+  #agent-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9100; }
+  #agent-panel { display:none;position:fixed;bottom:0;left:0;right:0;max-height:75vh;background:#0f0f1a;border-top:2px solid #e94560;border-radius:16px 16px 0 0;z-index:9200;overflow:hidden;flex-direction:column; }
+  #agent-panel-header { display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#1a1a2e;color:#fff;font-weight:bold; }
+  #agent-panel-header button { background:none;border:none;color:#e94560;font-size:1.2rem;cursor:pointer; }
+  #agent-panel-body { padding:12px;overflow-y:auto;flex:1; }
+  #agent-empty { color:#888;text-align:center;margin-top:20px; }
+  .agent-task-card { background:#1a1a2e;border:1px solid #2a2a4e;border-radius:10px;padding:12px;margin-bottom:12px;color:#ddd; }
+  .task-id{font-size:0.7rem;color:#666;margin-bottom:4px;} .task-desc{font-size:0.95rem;color:#fff;font-weight:bold;margin-bottom:6px;} .task-action{font-size:0.8rem;color:#aaa;background:#0f0f1a;border-radius:6px;padding:6px 8px;margin-bottom:10px;word-break:break-all;}
+  .task-buttons{display:flex;gap:8px;} .task-buttons button{flex:1;padding:10px;border:none;border-radius:8px;font-size:0.9rem;font-weight:bold;cursor:pointer;}
+  .btn-approve{background:#16a34a;color:#fff;} .btn-reject{background:#dc2626;color:#fff;}
+  .agent-task-card.done{border-color:#16a34a;opacity:0.7;} .agent-task-card.error{border-color:#dc2626;opacity:0.7;}
+  .task-result{font-size:0.78rem;color:#aaa;background:#0a0a15;border-radius:6px;padding:6px 8px;margin-top:8px;max-height:80px;overflow-y:auto;word-break:break-all;}
+
   </style>
 </head>
 <body>
@@ -2839,5 +2858,26 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+
+  <!-- HOUESSÈ AGENT BRIDGE : HTML -->
+  <div id="agent-badge" onclick="agentOuvrirPanneau()"><span id="agent-badge-count">0</span>🤖</div>
+  <div id="agent-overlay" onclick="agentFermerPanneau()"></div>
+  <div id="agent-panel">
+    <div id="agent-panel-header"><span>🤖 Houessè — Validation</span><button onclick="agentFermerPanneau()">✕</button></div>
+    <div id="agent-panel-body"><p id="agent-empty">Aucune tâche en attente.</p><div id="agent-task-list"></div></div>
+  </div>
+  <script>
+  var AGENT_URL="http://127.0.0.1:7731";
+  function agentPing(cb){fetch(AGENT_URL+"/ping").then(function(r){return r.json();}).then(function(d){if(cb)cb(d.ok===true);}).catch(function(){if(cb)cb(false);});}
+  function houesseSoumetTache(desc,action,params){return fetch(AGENT_URL+"/task",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({description:desc,action:action,params:params||{}})}).then(function(r){return r.json();}).then(function(d){agentRefreshBadge();return d;}).catch(function(e){return{ok:false,error:String(e)};});}
+  function agentChargerTaches(s){var u=AGENT_URL+"/tasks";if(s)u+="?status="+s;return fetch(u).then(function(r){return r.json();}).catch(function(){return[];});}
+  function agentValider(id,dec){fetch(AGENT_URL+"/validate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({task_id:id,decision:dec})}).then(function(r){return r.json();}).then(function(){agentRendrePanneau();});}
+  function agentRefreshBadge(){agentChargerTaches("pending").then(function(t){var n=t.length,b=document.getElementById("agent-badge"),c=document.getElementById("agent-badge-count");if(!b)return;c.textContent=n;n>0?b.classList.add("has-tasks"):b.classList.remove("has-tasks");});}
+  function agentRendrePanneau(){agentChargerTaches().then(function(tasks){var list=document.getElementById("agent-task-list"),empty=document.getElementById("agent-empty");if(!list)return;tasks.sort(function(a,b){var o={pending:0,done:1,error:2,rejected:3};return(o[a.status]||9)-(o[b.status]||9);});empty.style.display=tasks.length===0?"block":"none";list.innerHTML="";tasks.forEach(function(t){var card=document.createElement("div");card.className="agent-task-card "+(t.status==="pending"?"":t.status);var sl={pending:"⏳ En attente",done:"✔️ Exécuté",error:"💥 Erreur",rejected:"❌ Rejeté"}[t.status]||t.status;var btn=t.status==="pending"?'<div class="task-buttons"><button class="btn-approve" onclick="agentValider(''+t.id+'','approved')">✅ Approuver</button><button class="btn-reject" onclick="agentValider(''+t.id+'','rejected')">❌ Rejeter</button></div>':"";var res=t.result?'<div class="task-result">'+t.result+"</div>":"";card.innerHTML='<div class="task-id">#'+t.id+" — "+sl+'</div><div class="task-desc">'+t.description+'</div><div class="task-action">'+t.action+"</div>"+btn+res;list.appendChild(card);});agentRefreshBadge();});}
+  function agentOuvrirPanneau(){var p=document.getElementById("agent-panel"),o=document.getElementById("agent-overlay");if(!p)return;p.style.display="flex";o.style.display="block";agentRendrePanneau();}
+  function agentFermerPanneau(){var p=document.getElementById("agent-panel"),o=document.getElementById("agent-overlay");if(!p)return;p.style.display="none";o.style.display="none";}
+  document.addEventListener("DOMContentLoaded",function(){agentPing(function(ok){var b=document.getElementById("agent-badge");if(!b)return;b.style.display="flex";if(ok){agentRefreshBadge();setInterval(agentRefreshBadge,10000);}else{b.style.opacity="0.3";}});});
+  </script>
+
 </body>
 </html>
