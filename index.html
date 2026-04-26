@@ -1703,10 +1703,10 @@ function toggleTheme(){
   var isLight = document.body.classList.toggle('light-mode');
   var btn = document.getElementById('themeBtn');
   if(btn) btn.textContent = isLight ? '🌙' : '☀️';
-  localStorage.setItem('h_theme', isLight ? 'light' : 'dark');
+  try{localStorage.setItem('h_theme', isLight ? 'light' : 'dark');}catch(e){}
 }
 function loadTheme(){
-  var t = localStorage.getItem('h_theme');
+  var t = '';try{t = localStorage.getItem('h_theme')||'';}catch(e){}
   if(t === 'light'){
     document.body.classList.add('light-mode');
     var btn = document.getElementById('themeBtn');
