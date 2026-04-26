@@ -1073,7 +1073,7 @@ function openSettings(){
     if(S.ai.keys)['groq','openrouter','anthropic','mistral','openai'].forEach(p=>{
       const el=document.getElementById('k_'+p);if(el)el.value=S.ai.keys[p]||'';
     });
-    const oUrl=document.getElementById('ollamaUrl');if(oUrl)oUrl.value=S.ai.olUrl||'http://localhost:11434';
+    const oUrl=document.getElementById('ollamaUrl');if(oUrl)oUrl.value=S.ai.olUrl||'http://127.0.0.1:11434';S.ai.olUrl='http://127.0.0.1:11434';S.ai.olModel='gemma:2b';
     const oMod=document.getElementById('ollamaModel');if(oMod)oMod.value=S.ai.olModel||'llama3.2';
     const orM=document.getElementById('orModel');if(orM)orM.value=S.ai.orModel||'meta-llama/llama-3.3-70b-instruct:free';
     const tM=document.getElementById('tglMem');if(tM)tM.classList.toggle('on',S.ai.injMem!==false);
