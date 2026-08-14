@@ -1657,6 +1657,38 @@ async function manualSync(){
 
 async function saveAll(){ save(); await cloudSave(); }
 
+// ══ MÉMOIRE RÉCURSIVE — HOUESSE_CYCLES ══
+async function enregistrerCycle(requete,reponse,modalite='texte'){
+  if(!S.cloud||!S.cloud.enabled||!S.cloud.url||!S.cloud.key)return null;
+  try{
+    const r=await fetch(sbUrl()+'/rest/v1/houesse_cycles',{method:'POST',
+      headers:{...sbHdr(),'Prefer':'return=representation'},
+      body:JSON.stringify({requete,reponse,modalite,fiabilite:1.0,valide:false})});
+    if(!r.ok){console.warn('enregistrerCycle',r.status,await r.text());return null;}
+    const d=await r.json();
+    return (d&&d[0])?d[0]:null;
+  }catch(e){console.warn('enregistrerCycle err:',e.message);return null;}
+}
+
+async function validerCycle(cycleId,valide=true){
+  if(!S.cloud||!S.cloud.enabled||!S.cloud.url||!S.cloud.key||!cycleId)return;
+  try{
+    await fetch(sbUrl()+'/rest/v1/houesse_cycles?id=eq.'+cycleId,{method:'PATCH',headers:sbHdr(),
+      body:JSON.stringify({valide})});
+  }catch(e){console.warn('validerCycle err:',e.message);}
+}
+
+async function recupererContexte(limite=5,modalite=null){
+  if(!S.cloud||!S.cloud.enabled||!S.cloud.url||!S.cloud.key)return[];
+  try{
+    let url=sbUrl()+'/rest/v1/houesse_cycles?valide=eq.true&order=created_at.desc&limit='+limite;
+    if(modalite)url+='&modalite=eq.'+encodeURIComponent(modalite);
+    const r=await fetch(url,{headers:sbHdr()});
+    if(!r.ok)return[];
+    return await r.json();
+  }catch(e){console.warn('recupererContexte err:',e.message);return[];}
+}
+
 // ══ CHAT ══
 function updateCtx(){
   const pts=[];
@@ -1698,6 +1730,8 @@ function feedbackMsg(btn,val){
   const txt=msg.innerText.replace('📋 Copier👍👎','').trim().substring(0,200);
   S.feedback.push({val,txt,at:new Date().toISOString()});
   save();
+  const cycleId=msg.dataset.cycleId;
+  if(cycleId) validerCycle(cycleId,!!val);
 }
 function toggleTheme(){
   var isLight = document.body.classList.toggle('light-mode');
@@ -1763,7 +1797,8 @@ async function sendChat(){
     // Remplacer dernier message user avec le contenu enrichi
     if(ms.length&&ms[ms.length-1].role==='user') ms[ms.length-1].content=userContent;
     const rep=await callIASmart(sp,ms,msg);
-    hideTyp();S.chat.push({role:'bot',content:rep});addMsg('bot',rep);
+    hideTyp();S.chat.push({role:'bot',content:rep});const botDiv=addMsg('bot',rep);
+    enregistrerCycle(msg,rep).then(c=>{if(c&&botDiv)botDiv.dataset.cycleId=c.id;});
     if(ttsEnabled) speakText(rep);
     saveAll();updStats();
   }catch(e){hideTyp();addMsg('bot','⚠️ Erreur : '+e.message+'\n\nVérifiez vos paramètres IA dans les réglages.');}
